@@ -13,7 +13,6 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.LinkedList;
 
 import javax.swing.JFileChooser;
@@ -31,19 +30,19 @@ public class MainFrame extends JFrame implements ActionListener {
 	/**
 	 * 
 	 */
-	JTabbedPane tb;
-	ArrayList<ContentPane> array = new ArrayList<>();
-	JMenu[] menus;
-	JMenuItem[] fileItems;
-	JMenuItem[] editItems;
-	JMenuItem[] compileItems;
-	JMenuItem[] helpItems;
-	LinkedList<ContentPane> contentlist = new LinkedList<>();
-	JFileChooser chooser;
+	JTabbedPane tb;// tab项
+	JMenu[] menus;// 总菜单
+	JMenuItem[] fileItems;// 文件菜单中的菜单项
+	JMenuItem[] editItems;// 编辑菜单中的菜单项
+	JMenuItem[] compileItems;// 编辑菜单中的菜单项
+	JMenuItem[] helpItems;// 帮助菜单中的菜单项
+	LinkedList<ContentPane> contentlist = new LinkedList<>();// tab项中的内容
+	JFileChooser chooser;// 打开或保存文件的文件选择器
 
 	private static final long serialVersionUID = 1L;
 	private JTextField search;
 
+	// 构造函数，创建各种元素
 	public MainFrame() {
 		// setFont(new Font("华文宋体", Font.PLAIN, 15));
 		setIconImage(Toolkit.getDefaultToolkit()
@@ -64,7 +63,7 @@ public class MainFrame extends JFrame implements ActionListener {
 
 		menus = new JMenu[] { new JMenu("文件"), new JMenu("编辑"), new JMenu("编译"), new JMenu("帮助") };
 		fileItems = new JMenuItem[] { new JMenuItem("新建"), new JMenuItem("打开"), new JMenuItem("保存"),
-				new JMenuItem("另存为"), new JMenuItem("退出") };
+				new JMenuItem("另存为"), new JMenuItem("关闭"), new JMenuItem("设置"), new JMenuItem("退出") };
 		editItems = new JMenuItem[] { new JMenuItem("复制"), new JMenuItem("粘贴"), new JMenuItem("撤销") };
 		compileItems = new JMenuItem[] { new JMenuItem("编译"), new JMenuItem("添加词法"), new JMenuItem("添加文法"),
 				new JMenuItem("make") };
@@ -97,6 +96,7 @@ public class MainFrame extends JFrame implements ActionListener {
 		new MainFrame();
 	}
 
+	// 覆盖方法，监听点击了菜单中的哪些选项并实现监听的事件
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		// TODO Auto-generated method stub
@@ -107,6 +107,7 @@ public class MainFrame extends JFrame implements ActionListener {
 		case "新建":
 			ContentPane pane = createContentPane();
 			tb.addTab("New tab", null, pane, null);
+			tb.setSelectedIndex(contentlist.size() - 1);
 			break;
 		case "打开":
 			chooser.showOpenDialog(this);
@@ -127,20 +128,28 @@ public class MainFrame extends JFrame implements ActionListener {
 			}
 			break;
 		case "另存为":
-
+			String s = contentlist.get(tb.getSelectedIndex()).getText();
+			chooser.showOpenDialog(this);
+			File file = chooser.getSelectedFile();
+			saveFile(file, s);
 			break;
 		case "退出":
-
+			System.exit(0);
 			break;
 		case "编译":
 
 			break;
+		case "关闭":
+			contentlist.remove(tb.getSelectedComponent());
+			tb.remove(tb.getSelectedIndex());
 
+			break;
 		default:
 			break;
 		}
 	}
 
+	// 初始化，将各个菜单单元加入到菜单项中显示
 	private void init() {
 
 		JMenuBar menuBar = new JMenuBar();
@@ -228,21 +237,25 @@ public class MainFrame extends JFrame implements ActionListener {
 
 	}
 
+	// 设置快捷键
 	private void setAccelerator() {
 		fileItems[0].setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, ActionEvent.CTRL_MASK));
 		fileItems[1].setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, ActionEvent.CTRL_MASK));
 		fileItems[2].setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK));
 		fileItems[3]
 				.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.ALT_MASK + ActionEvent.CTRL_MASK));
+		fileItems[4].setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_E, ActionEvent.CTRL_MASK));
 		compileItems[0].setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F5, ActionEvent.CTRL_MASK));
 	}
 
+	// 创建一个tab，并将tab加入到一个list中便于管理
 	private ContentPane createContentPane() {
 		ContentPane pane = new ContentPane();
 		contentlist.add(pane);
 		return pane;
 	}
 
+	// 打开文件，将文件f中的内容显示在一个新的tab中
 	private void OPenFile(File f) {
 		try {
 			@SuppressWarnings("resource")
@@ -269,6 +282,7 @@ public class MainFrame extends JFrame implements ActionListener {
 
 	}
 
+	// 将str写入文件f
 	private void saveFile(File f, String str) {
 		try {
 			BufferedWriter writer = new BufferedWriter(new FileWriter(f));
@@ -279,4 +293,5 @@ public class MainFrame extends JFrame implements ActionListener {
 			e.printStackTrace();
 		}
 	}
+
 }

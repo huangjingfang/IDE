@@ -13,6 +13,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.LinkedList;
 
 import javax.swing.JFileChooser;
@@ -20,9 +21,11 @@ import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
+import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
@@ -38,6 +41,9 @@ public class MainFrame extends JFrame implements ActionListener {
 	JMenuItem[] helpItems;// 帮助菜单中的菜单项
 	LinkedList<ContentPane> contentlist = new LinkedList<>();// tab项中的内容
 	JFileChooser chooser;// 打开或保存文件的文件选择器
+	String searchContent;
+	ArrayList<Integer> searchIndex;
+	int currentIndex;
 
 	private static final long serialVersionUID = 1L;
 	private JTextField search;
@@ -63,7 +69,7 @@ public class MainFrame extends JFrame implements ActionListener {
 
 		menus = new JMenu[] { new JMenu("文件"), new JMenu("编辑"), new JMenu("编译"), new JMenu("帮助") };
 		fileItems = new JMenuItem[] { new JMenuItem("新建"), new JMenuItem("打开"), new JMenuItem("保存"),
-				new JMenuItem("另存为"), new JMenuItem("关闭"), new JMenuItem("设置"), new JMenuItem("退出") };
+				new JMenuItem("另存为"),new JMenuItem("搜索"), new JMenuItem("关闭"), new JMenuItem("设置"), new JMenuItem("退出") };
 		editItems = new JMenuItem[] { new JMenuItem("复制"), new JMenuItem("粘贴"), new JMenuItem("撤销") };
 		compileItems = new JMenuItem[] { new JMenuItem("编译"), new JMenuItem("添加词法"), new JMenuItem("添加文法"),
 				new JMenuItem("make") };
@@ -80,13 +86,14 @@ public class MainFrame extends JFrame implements ActionListener {
 		tb.addTab("New tab", null, content, null);
 
 		JMenuBar menuBar_1 = new JMenuBar();
-		menuBar_1.setLayout(new GridLayout(1, 3));
+		menuBar_1.setLayout(new GridLayout(0, 5));
 		getContentPane().add(menuBar_1, BorderLayout.SOUTH);
 
 		search = new JTextField();
+		search.setHorizontalAlignment(SwingConstants.LEFT);
 		menuBar_1.add(search);
 		search.setColumns(10);
-
+		
 		JMenuItem status = new JMenuItem("status:");
 		menuBar_1.add(status);
 
@@ -102,7 +109,6 @@ public class MainFrame extends JFrame implements ActionListener {
 		// TODO Auto-generated method stub
 		String commond = e.getActionCommand();
 		System.out.println("commond:" + commond);
-
 		switch (commond) {
 		case "新建":
 			ContentPane pane = createContentPane();
@@ -133,6 +139,17 @@ public class MainFrame extends JFrame implements ActionListener {
 			File file = chooser.getSelectedFile();
 			saveFile(file, s);
 			break;
+		case "搜索":
+			//Search search = Search.getInstance();
+			searchContent = JOptionPane.showInputDialog(this, "请输入要搜索的内容:");
+			searchIndex = search(searchContent);
+			int index = searchIndex.get(0);
+			for(int a:searchIndex){
+				System.out.print(a+"\t");
+			}
+			contentlist.get(tb.getSelectedIndex()).codePane.setCaretPosition(index);
+			break;
+			//search.setVisible(true);
 		case "退出":
 			System.exit(0);
 			break;
@@ -182,59 +199,6 @@ public class MainFrame extends JFrame implements ActionListener {
 			menuBar.add(jMenu);
 		}
 
-		// JMenu file = new JMenu("文件");
-		// menuBar.add(file);
-		// JMenuItem newFile = new JMenuItem("新建");
-		// newFile.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N,
-		// ActionEvent.CTRL_MASK));
-		// newFile.setActionCommand("newFile");
-		// newFile.addActionListener(this);
-		// file.add(newFile);
-		// JMenuItem openFile = new JMenuItem("打开");
-		// openFile.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O,
-		// ActionEvent.CTRL_MASK));
-		// openFile.setActionCommand("openFile");
-		// openFile.addActionListener(this);
-		// file.add(openFile);
-		// JMenuItem save = new JMenuItem("保存");
-		// save.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S,
-		// ActionEvent.CTRL_MASK));
-		// save.setActionCommand("save");
-		// save.addActionListener(this);
-		// file.add(save);
-		// JMenuItem saveAs = new JMenuItem("另存为");
-		// saveAs.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S,
-		// ActionEvent.ALT_MASK + ActionEvent.CTRL_MASK));
-		// saveAs.setActionCommand("saveAs");
-		// saveAs.addActionListener(this);
-		// file.add(saveAs);
-		// file.addSeparator();
-		// JMenuItem exit = new JMenuItem("退出");
-		// exit.setActionCommand("exit");
-		// exit.addActionListener(this);
-		// file.add(exit);
-		//
-		// JMenu edit = new JMenu("编辑");
-		// menuBar.add(edit);
-		//
-		// JMenu tools = new JMenu("工具");
-		// menuBar.add(tools);
-		// JMenuItem compileFile = new JMenuItem("编译");
-		// compileFile.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F5,
-		// ActionEvent.CTRL_MASK));
-		// tools.add(compileFile);
-		// JMenuItem addLex = new JMenuItem("添加词法");
-		// tools.add(addLex);
-		// JMenuItem addGrammer = new JMenuItem("添加文法");
-		// tools.add(addGrammer);
-		// JMenuItem make = new JMenuItem("make");
-		// tools.add(make);
-		//
-		// JMenu help = new JMenu("帮助");
-		// menuBar.add(help);
-		// JMenuItem about = new JMenuItem("关于");
-		// help.add(about);
-
 	}
 
 	// 设置快捷键
@@ -244,7 +208,8 @@ public class MainFrame extends JFrame implements ActionListener {
 		fileItems[2].setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK));
 		fileItems[3]
 				.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.ALT_MASK + ActionEvent.CTRL_MASK));
-		fileItems[4].setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_E, ActionEvent.CTRL_MASK));
+		fileItems[4].setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F, ActionEvent.CTRL_MASK));
+		fileItems[5].setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_E, ActionEvent.CTRL_MASK));
 		compileItems[0].setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F5, ActionEvent.CTRL_MASK));
 	}
 
@@ -293,5 +258,18 @@ public class MainFrame extends JFrame implements ActionListener {
 			e.printStackTrace();
 		}
 	}
-
+	//搜索指定内容
+	public ArrayList<Integer> search(String s){
+		ArrayList<Integer> index = new ArrayList<>();
+		String rex = "(\\w|\\W)*"+s;
+		int length = s.length();
+		String text = contentlist.get(tb.getSelectedIndex()).getText();
+		for(int i=0;i<=text.length();i++){
+			if(text.substring(0, i).matches(rex)){
+				index.add(i);
+				contentlist.get(tb.getSelectedIndex()).codePane.defaultStyle.setCharacterAttributes(i-length, length,CodePane.find, false);
+			}
+		}
+		return index;
+	}
 }

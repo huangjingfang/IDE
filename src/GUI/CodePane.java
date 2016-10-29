@@ -4,9 +4,6 @@ import java.awt.Color;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
-import java.util.HashMap;
-import java.util.Iterator;
-
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.InputMap;
@@ -27,12 +24,7 @@ import javax.swing.undo.UndoManager;
 
 import utilities.DataUtil;
 
-
-class Pair{
-	int first;
-	int last;
-}
-//代码编辑的panel
+// 代码编辑的panel
 public class CodePane extends JTextPane {
 
 	/**
@@ -45,6 +37,7 @@ public class CodePane extends JTextPane {
 	SimpleAttributeSet blue;// 引号内的属性集
 	SimpleAttributeSet lightGreen;// 注释的属性集
 	SimpleAttributeSet normal;// 其他的默认属性集
+	public static SimpleAttributeSet find;//搜索结果
 	DefaultStyledDocument defaultStyle;// 默认的文档
 	String keywords;// 关键字的正则表达式
 	String isnote;// 注释的正则表达式
@@ -53,7 +46,7 @@ public class CodePane extends JTextPane {
 	public CodePane() {
 		isnote = "(\\W)*\"(.)*\"";
 		insideQuotation = "(\\W)*//";
-
+		
 		setKeyword();
 		initAttributeSet();
 
@@ -66,7 +59,10 @@ public class CodePane extends JTextPane {
 	private void setKeyword() {
 		StringBuffer buffer = new StringBuffer("(\\W)*(");
 		for (String s : DataUtil.keywords) {
-			buffer.append(s).append("|");
+			buffer.append(s);
+			if(!s.equals(DataUtil.keywords[DataUtil.keywords.length-1])){
+				buffer.append('|');
+			}
 		}
 		buffer.append(")");
 		keywords = buffer.toString();
@@ -94,6 +90,12 @@ public class CodePane extends JTextPane {
 		StyleConstants.setForeground(normal, Color.BLACK);
 		FontConstants.setFontFamily(normal, "Consolas");
 		FontConstants.setFontSize(normal, DataUtil.fontSize);
+		
+		find = new SimpleAttributeSet();
+		StyleConstants.setForeground(find, Color.WHITE);
+		StyleConstants.setBackground(find, Color.RED);
+		FontConstants.setFontFamily(find, "Consolas");
+		FontConstants.setFontSize(find, DataUtil.fontSize);
 
 		defaultStyle = new DefaultStyledDocument() {
 
@@ -101,65 +103,65 @@ public class CodePane extends JTextPane {
 			 * 
 			 */
 			private static final long serialVersionUID = 1L;
-			boolean hasQuotation = false;
-			int quotationL = 0, quotationR = 0;
 
 			@Override
 			public void insertString(int offset, String str, AttributeSet a) throws BadLocationException {
 				// TODO Auto-generated method stub
+				switch (str) {
+				case "\t":
+					str = "   ";
+					break;
+				case "\"":
+					str = "\"\"";
+					break;
+				case "(":
+					str = "()";
+					break;
+				case "{":
+					str = "{}";
+					break;
+				default:
+					break;
+				}
 				super.insertString(offset, str, a);
-				String text = getText(0, getLength());
-				
+				if (str.equals("\"\"") || str.equals("()") || str.equals("{}")) {
+					setCaretPosition(getCaretPosition() - 1);
+				}
 
-				
-				//System.out.println("input:" + str + "Text\t" + text);
-				int current = text.lastIndexOf(str);
-				if (hasQuotation) {
-					if (str.equals("\"")) {
-						hasQuotation = false;
-						quotationR = text.lastIndexOf(str);
-						setCharacterAttributes(quotationL, quotationR - quotationL+1, blue, false);
-					} else {
-						setCharacterAttributes(quotationL, current - quotationL, blue, false);
-					}
-				} else{
-					HashMap<Integer, Integer> map = getQuotationIndexs(text);
-					Iterator<Integer> iterator = map.keySet().iterator();
-					while(iterator.hasNext()){
-						int first = iterator.next();
-						int last = map.get(first);
-						System.out.println(first+"\t"+last);
-						setCharacterAttributes(first, last-first, blue, false);
-					}
-					if (str.equals("\"")){
-						System.out.println("Match");
-						hasQuotation = true;
-						quotationL = text.lastIndexOf(str);
-					} else {
-						int before = findLastNonWordChar(text, offset);
-						if (before < 0)
-							before = 0;
-						int after = findFirstNonWordChar(text, offset + str.length());
-						int wordL = before;
-						int wordR = before;
+				String text = CodePane.this.getText();
 
-						// System.out.println("HasQuotation"+hasQuotation);
-						while (wordR <= after) {
-							if (wordR == after || String.valueOf(text.charAt(wordR)).matches("\\W")) {
-								if (text.substring(wordL, wordR).matches(keywords))
-									setCharacterAttributes(wordL, wordR - wordL, purple, false);
-								else
-									setCharacterAttributes(wordL, wordR - wordL, normal, false);
-								wordL = wordR;
-							}
-							wordR++;
+				int before = findLastNonWordChar(text, offset);
+				if (before < 0)
+					before = 0;
+				int after = findFirstNonWordChar(text, offset + str.length());
+				int wordL = before;
+				int wordR = before;
+
+				while (wordR <= after) {
+					if (wordR == after || String.valueOf(text.charAt(wordR)).matches("\\W")) {
+						if (text.substring(wordL, wordR).matches(keywords)){
+							setCharacterAttributes(wordL, wordR - wordL, purple, false);
+							System.out.println("Match keywords @ "+ wordL+"\tkeyword:"+text.substring(wordL, wordR));
 						}
-					
+						else{
+							setCharacterAttributes(wordL, wordR - wordL, normal, false);
+						}
+						wordL = wordR;
+					}
+					wordR++;
+
+				}
+				int begin=0;
+				for(int i=0;i<text.length();i++){
+					if(text.charAt(i)=='"'){
+						if(begin==0){
+							begin = i;
+						}else{
+							setCharacterAttributes(begin, i-begin, blue, true);
+							begin = 0;
+						}
 					}
 				}
-					
-					
-
 			}
 
 			@Override
@@ -176,6 +178,18 @@ public class CodePane extends JTextPane {
 					setCharacterAttributes(before, after - before, purple, false);
 				} else {
 					setCharacterAttributes(before, after - before, normal, false);
+				}
+				
+				int begin=0;
+				for(int i=0;i<text.length();i++){
+					if(text.charAt(i)=='"'){
+						if(begin==0){
+							begin = i;
+						}else{
+							setCharacterAttributes(begin, i-begin, blue, true);
+							begin = 0;
+						}
+					}
 				}
 			}
 
@@ -271,29 +285,6 @@ public class CodePane extends JTextPane {
 			index++;
 		}
 		return index;
-	}
-	
-	private HashMap<Integer, Integer> getQuotationIndexs(String text){
-		HashMap<Integer, Integer> map = new HashMap<>();
-		boolean flag = false;
-		int first = 0,last = 0;
-		int count = 0;
-		while(count<text.length()){
-			if(flag){
-				if(text.charAt(count)=='"'){
-					last = count;
-					map.put(first, last);
-					count++;
-				}else count++;
-			}else{
-				if(text.charAt(count)=='"'){
-					first = count;
-					flag = true;
-					count++;
-				}else count++;
-			}
-		}
-		return map;
 	}
 
 }

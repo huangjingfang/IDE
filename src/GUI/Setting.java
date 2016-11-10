@@ -3,11 +3,6 @@ package GUI;
 import java.awt.BorderLayout;
 
 import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.JTree;
-import javax.swing.JSlider;
-import javax.swing.JDesktopPane;
-import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 
 public class Setting extends JFrame {

@@ -14,6 +14,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 
 import javax.swing.JFileChooser;
@@ -29,6 +30,14 @@ import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
+import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
+import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
+import org.fife.ui.rtextarea.RTextScrollPane;
+import org.fife.ui.rtextarea.SearchContext;
+import org.fife.ui.rtextarea.SearchEngine;
+
+import utilities.DataUtil;
+
 public class MainFrame extends JFrame implements ActionListener {
 	/**
 	 * 
@@ -39,7 +48,8 @@ public class MainFrame extends JFrame implements ActionListener {
 	JMenuItem[] editItems;// 编辑菜单中的菜单项
 	JMenuItem[] compileItems;// 编辑菜单中的菜单项
 	JMenuItem[] helpItems;// 帮助菜单中的菜单项
-	LinkedList<ContentPane> contentlist = new LinkedList<>();// tab项中的内容
+	LinkedList<RTextScrollPane> contentlist = new LinkedList<>();// tab项中的内容
+	HashMap<RTextScrollPane, String> pathDic = new HashMap<>();// 存储每个tab的路径;
 	JFileChooser chooser;// 打开或保存文件的文件选择器
 	String searchContent;
 	ArrayList<Integer> searchIndex;
@@ -69,7 +79,8 @@ public class MainFrame extends JFrame implements ActionListener {
 
 		menus = new JMenu[] { new JMenu("文件"), new JMenu("编辑"), new JMenu("编译"), new JMenu("帮助") };
 		fileItems = new JMenuItem[] { new JMenuItem("新建"), new JMenuItem("打开"), new JMenuItem("保存"),
-				new JMenuItem("另存为"),new JMenuItem("搜索"), new JMenuItem("关闭"), new JMenuItem("设置"), new JMenuItem("退出") };
+				new JMenuItem("另存为"), new JMenuItem("搜索"), new JMenuItem("关闭"), new JMenuItem("设置"),
+				new JMenuItem("退出") };
 		editItems = new JMenuItem[] { new JMenuItem("复制"), new JMenuItem("粘贴"), new JMenuItem("撤销") };
 		compileItems = new JMenuItem[] { new JMenuItem("编译"), new JMenuItem("添加词法"), new JMenuItem("添加文法"),
 				new JMenuItem("make") };
@@ -82,7 +93,8 @@ public class MainFrame extends JFrame implements ActionListener {
 		tb = new JTabbedPane();
 		getContentPane().add(tb, BorderLayout.CENTER);
 
-		ContentPane content = createContentPane();
+		RTextScrollPane content = createContentPane();
+		pathDic.put(content, null);
 		tb.addTab("New tab", null, content, null);
 
 		JMenuBar menuBar_1 = new JMenuBar();
@@ -93,7 +105,7 @@ public class MainFrame extends JFrame implements ActionListener {
 		search.setHorizontalAlignment(SwingConstants.LEFT);
 		menuBar_1.add(search);
 		search.setColumns(10);
-		
+
 		JMenuItem status = new JMenuItem("status:");
 		menuBar_1.add(status);
 
@@ -111,22 +123,28 @@ public class MainFrame extends JFrame implements ActionListener {
 		System.out.println("commond:" + commond);
 		switch (commond) {
 		case "新建":
-			ContentPane pane = createContentPane();
+			RTextScrollPane pane = createContentPane();
+			pathDic.put(pane, null);
 			tb.addTab("New tab", null, pane, null);
 			tb.setSelectedIndex(contentlist.size() - 1);
 			break;
 		case "打开":
 			chooser.showOpenDialog(this);
 			File f = chooser.getSelectedFile();
-			OPenFile(f);
+			String name = f.getName();
+			String type = name.substring(name.lastIndexOf(".")+1,name.length());
+			OPenFile(f,type);
 			tb.setSelectedIndex(contentlist.size() - 1);
 			break;
 		case "保存":
-			String str = contentlist.get(tb.getSelectedIndex()).getText();
-			String path = contentlist.get(tb.getSelectedIndex()).getPath();
+			String str = contentlist.get(tb.getSelectedIndex()).getTextArea().getText();
+			String path = pathDic.get(contentlist.get(tb.getSelectedIndex()));
 			if (path == null) {
-				chooser.showOpenDialog(this);
+				chooser.showSaveDialog(this);
 				File file = chooser.getSelectedFile();
+				path = file.getAbsolutePath();
+				pathDic.put(contentlist.get(tb.getSelectedIndex()), path);
+				tb.setTitleAt(tb.getSelectedIndex(), file.getName());
 				saveFile(file, str);
 			} else {
 				File file = new File(path);
@@ -134,22 +152,21 @@ public class MainFrame extends JFrame implements ActionListener {
 			}
 			break;
 		case "另存为":
-			String s = contentlist.get(tb.getSelectedIndex()).getText();
-			chooser.showOpenDialog(this);
+			String s = "default";
+			chooser.showSaveDialog(this);
 			File file = chooser.getSelectedFile();
+			path = file.getAbsolutePath();
+			pathDic.put(contentlist.get(tb.getSelectedIndex()), path);
+			tb.setTitleAt(tb.getSelectedIndex(), file.getName());
 			saveFile(file, s);
 			break;
 		case "搜索":
-			//Search search = Search.getInstance();
 			searchContent = JOptionPane.showInputDialog(this, "请输入要搜索的内容:");
+			System.out.println(searchContent);
+			SearchContext searchContext = new SearchContext(searchContent);
+			SearchEngine.find(contentlist.get(tb.getSelectedIndex()).getTextArea(), searchContext);
 			searchIndex = search(searchContent);
-			int index = searchIndex.get(0);
-			for(int a:searchIndex){
-				System.out.print(a+"\t");
-			}
-			contentlist.get(tb.getSelectedIndex()).codePane.setCaretPosition(index);
 			break;
-			//search.setVisible(true);
 		case "退出":
 			System.exit(0);
 			break;
@@ -158,6 +175,7 @@ public class MainFrame extends JFrame implements ActionListener {
 			break;
 		case "关闭":
 			contentlist.remove(tb.getSelectedComponent());
+			pathDic.remove(tb.getSelectedComponent());
 			tb.remove(tb.getSelectedIndex());
 
 			break;
@@ -214,14 +232,28 @@ public class MainFrame extends JFrame implements ActionListener {
 	}
 
 	// 创建一个tab，并将tab加入到一个list中便于管理
-	private ContentPane createContentPane() {
-		ContentPane pane = new ContentPane();
-		contentlist.add(pane);
-		return pane;
+	private RTextScrollPane createContentPane() {
+		RSyntaxTextArea pane = new RSyntaxTextArea();
+		pane.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA);
+		pane.setCodeFoldingEnabled(true);
+		RTextScrollPane sp = new RTextScrollPane(pane);
+		contentlist.add(sp);
+		return sp;
+	}
+
+	// 创建一个tab，发现该tab文件的后缀从而打开对应的语法高亮功能，并将tab加入到一个list中便于管理
+	private RTextScrollPane createContentPane(String language) {
+		RSyntaxTextArea pane = new RSyntaxTextArea();
+		System.out.println("text/" + language);
+		pane.setSyntaxEditingStyle("text/" + language);
+		pane.setCodeFoldingEnabled(true);
+		RTextScrollPane sp = new RTextScrollPane(pane);
+		contentlist.add(sp);
+		return sp;
 	}
 
 	// 打开文件，将文件f中的内容显示在一个新的tab中
-	private void OPenFile(File f) {
+	private void OPenFile(File f,String type) {
 		try {
 			@SuppressWarnings("resource")
 			BufferedReader reader = new BufferedReader(new FileReader(f));
@@ -233,10 +265,12 @@ public class MainFrame extends JFrame implements ActionListener {
 				strb.append(reader.readLine()).append("\n");
 			}
 
-			ContentPane pane = createContentPane();
+			RTextScrollPane pane = createContentPane(type);
+			pathDic.put(pane, path);
 			tb.addTab(title, pane);
-			pane.setText(strb.toString());
-			pane.setPath(path);
+			pane.getTextArea().setText(strb.toString());
+			// pane.setText(strb.toString());
+			// pane.setPath(path);
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -258,16 +292,19 @@ public class MainFrame extends JFrame implements ActionListener {
 			e.printStackTrace();
 		}
 	}
-	//搜索指定内容
-	public ArrayList<Integer> search(String s){
+
+	// 搜索指定内容
+	public ArrayList<Integer> search(String s) {
 		ArrayList<Integer> index = new ArrayList<>();
-		String rex = "(\\w|\\W)*"+s;
+		String rex = "(\\w|\\W)*" + s;
 		int length = s.length();
-		String text = contentlist.get(tb.getSelectedIndex()).getText();
-		for(int i=0;i<=text.length();i++){
-			if(text.substring(0, i).matches(rex)){
+		// String text = contentlist.get(tb.getSelectedIndex()).getText();
+		String text = "default";
+		for (int i = 0; i <= text.length(); i++) {
+			if (text.substring(0, i).matches(rex)) {
 				index.add(i);
-				contentlist.get(tb.getSelectedIndex()).codePane.defaultStyle.setCharacterAttributes(i-length, length,CodePane.find, false);
+				// contentlist.get(tb.getSelectedIndex()).codePane.defaultStyle.setCharacterAttributes(i-length,
+				// length,DataUtil.find, false);
 			}
 		}
 		return index;

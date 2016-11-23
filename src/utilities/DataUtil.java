@@ -244,4 +244,16 @@ public class DataUtil {
         }
         return out.toString();
     }
+    
+    static String[] instructionsSet = new String[]{
+    		"ADD","ADDU","ADDI","ADDIU","SUB","SUBU","MULT","MULTU","DIV","DIVU",
+    		"AND","ANDI","OR","ORI","XOR","XORI","NOR","LUI",
+    		"SLL","SRL","SRA","SLLV","SRLV","SRAV",
+    		"LB","LBU","LH","LHU","LW","SB","SH","SW",
+    		"BEQ","BNE","SLT","SLTI","SLTU","SLTIU","BGEZ","BGTZ","BLEZ","BLTZ","BZEZAL","BLTZAL",
+    		"J","JR","JAL","JALR",
+    		"MFHI","MFLO","MTHI","MTLO",
+    		"BREAK","SYSCALL",
+    		"ERET","MFC0","MTC0"
+    		};
 }

@@ -36,6 +36,7 @@ import org.fife.ui.rtextarea.RTextScrollPane;
 import org.fife.ui.rtextarea.SearchContext;
 import org.fife.ui.rtextarea.SearchEngine;
 
+import compiler.translation;
 import utilities.DataUtil;
 
 public class MainFrame extends JFrame implements ActionListener {
@@ -93,7 +94,7 @@ public class MainFrame extends JFrame implements ActionListener {
 		tb = new JTabbedPane();
 		getContentPane().add(tb, BorderLayout.CENTER);
 
-		RTextScrollPane content = createContentPane();
+		RTextScrollPane content = createContentPane(SyntaxConstants.SYNTAX_STYLE_NONE);
 		pathDic.put(content, null);
 		tb.addTab("New tab", null, content, null);
 
@@ -123,7 +124,7 @@ public class MainFrame extends JFrame implements ActionListener {
 		System.out.println("commond:" + commond);
 		switch (commond) {
 		case "新建":
-			RTextScrollPane pane = createContentPane();
+			RTextScrollPane pane = createContentPane(SyntaxConstants.SYNTAX_STYLE_NONE);
 			pathDic.put(pane, null);
 			tb.addTab("New tab", null, pane, null);
 			tb.setSelectedIndex(contentlist.size() - 1);
@@ -142,6 +143,8 @@ public class MainFrame extends JFrame implements ActionListener {
 			if (path == null) {
 				chooser.showSaveDialog(this);
 				File file = chooser.getSelectedFile();
+				if(file==null)
+					break;
 				path = file.getAbsolutePath();
 				pathDic.put(contentlist.get(tb.getSelectedIndex()), path);
 				tb.setTitleAt(tb.getSelectedIndex(), file.getName());
@@ -152,9 +155,11 @@ public class MainFrame extends JFrame implements ActionListener {
 			}
 			break;
 		case "另存为":
-			String s = "default";
+			String s = contentlist.get(tb.getSelectedIndex()).getTextArea().getText();
 			chooser.showSaveDialog(this);
 			File file = chooser.getSelectedFile();
+			if(file==null)
+				break;
 			path = file.getAbsolutePath();
 			pathDic.put(contentlist.get(tb.getSelectedIndex()), path);
 			tb.setTitleAt(tb.getSelectedIndex(), file.getName());
@@ -171,7 +176,9 @@ public class MainFrame extends JFrame implements ActionListener {
 			System.exit(0);
 			break;
 		case "编译":
-
+			String text = contentlist.get(tb.getSelectedIndex()).getTextArea().getText();
+			String[] lexs = text.split(" ");
+			new translation(lexs);
 			break;
 		case "关闭":
 			contentlist.remove(tb.getSelectedComponent());
@@ -232,14 +239,14 @@ public class MainFrame extends JFrame implements ActionListener {
 	}
 
 	// 创建一个tab，并将tab加入到一个list中便于管理
-	private RTextScrollPane createContentPane() {
-		RSyntaxTextArea pane = new RSyntaxTextArea();
-		pane.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA);
-		pane.setCodeFoldingEnabled(true);
-		RTextScrollPane sp = new RTextScrollPane(pane);
-		contentlist.add(sp);
-		return sp;
-	}
+//	private RTextScrollPane createContentPane() {
+//		RSyntaxTextArea pane = new RSyntaxTextArea();
+//		pane.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA);
+//		pane.setCodeFoldingEnabled(true);
+//		RTextScrollPane sp = new RTextScrollPane(pane);
+//		contentlist.add(sp);
+//		return sp;
+//	}
 
 	// 创建一个tab，发现该tab文件的后缀从而打开对应的语法高亮功能，并将tab加入到一个list中便于管理
 	private RTextScrollPane createContentPane(String language) {
@@ -283,6 +290,7 @@ public class MainFrame extends JFrame implements ActionListener {
 
 	// 将str写入文件f
 	private void saveFile(File f, String str) {
+		
 		try {
 			BufferedWriter writer = new BufferedWriter(new FileWriter(f));
 			writer.write(str);

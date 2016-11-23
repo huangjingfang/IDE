@@ -1,0 +1,30 @@
+.DATA
+	number:	.BYTE	?
+	c:	.BYTE	?
+	a:	.BYTE	?
+	b:	.BYTE	?
+.CODE
+main:
+	= t0,-,1
+	= a,-,t0
+	= t1,-,2
+	= b,-,t1
+	= t2,-,a
+	= t3,-,b
+	+ t4,t2,t3
+	= c,-,t4
+	= t5,-,a
+	= t6,-,b
+	BEQ t5,t6,s1
+	J s2,-,-
+s1:	CALL -,-,debug
+	POP -,-,t7
+	= t8,-,t7
+	= a,-,t8
+	J s3,-,-
+s2: 	= t9,-,4
+	= a,-,t9
+	= t10,-,5
+	= b,-,t10
+	J s3,-,-
+s3:	Jal -,-,-

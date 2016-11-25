@@ -1,4 +1,4 @@
-package utilities;
+package compiler;
 
 public class Quaternary {
 
@@ -17,7 +17,6 @@ public class Quaternary {
 	
 	//将该条指令翻译成指令码
 	public String genCode(){
-		int[] addr = BackEndStruct.getReg(this);
 		
 		return null;
 	}

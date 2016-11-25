@@ -8,11 +8,13 @@ public class semanticAnalysis
 	public Vector<producer> producers;
 	private Stack<Object> nonter;
 	
-	public semanticAnalysis(Vector<producer> producers)
+	public semanticAnalysis(Vector<producer> producers,Vector<sNode> VariSignary,Vector<sNode> ConsSignary)
 	{
 		this.producers = producers;
 		this.nonter = new Stack<Object>();
-		attributeDefinition.data.clear();
+		attributeDefinition.VariSignary = VariSignary;
+		attributeDefinition.ConsSignary = ConsSignary;
+		attributeDefinition.functions.clear();
 	}
 	
 	public Vector<String> Analysis(String []code,Vector<Integer> action,String []lex)
@@ -56,7 +58,7 @@ public class semanticAnalysis
 			nonter.push(decll2);
 			break;
 		case 4:
-			decl ddecl = new decl();
+			decl ddecl = new decl((var_decl)nonter.pop());
 			nonter.push(ddecl);
 			break;
 		case 5:
@@ -64,10 +66,12 @@ public class semanticAnalysis
 			nonter.push(ddecl2);
 			break;
 		case 6:
-			new var_decl((IDENT)nonter.pop(),(type_spec)nonter.pop());
+			var_decl var = new var_decl((IDENT)nonter.pop(),(type_spec)nonter.pop());
+			nonter.push(var);
 			break;
 		case 7:
-			new var_decl((int_literal)nonter.pop(),(IDENT)nonter.pop(),(type_spec)nonter.pop());
+			var_decl var2 = new var_decl((int_literal)nonter.pop(),(IDENT)nonter.pop(),(type_spec)nonter.pop());
+			nonter.push(var2);
 			break;
 		case 8:
 			type_spec type = new type_spec("INT");
@@ -82,56 +86,67 @@ public class semanticAnalysis
 			nonter.push(fun);
 			break;
 		case 11:
-			nonter.pop();
-			nonter.pop();
-			nonter.pop();
-			nonter.push(new fun_decl());
+			fun_decl fun2 = new fun_decl((params)nonter.pop(),(FUNCTION_IDENT)nonter.pop(),(type_spec)nonter.pop());
+			nonter.push(fun2);
 			break;
 		case 12:
 			FUNCTION_IDENT id = new FUNCTION_IDENT((IDENT)nonter.pop());
 			nonter.push(id);
 			break;
 		case 13:
-			nonter.push(new params());
+			params par = new params((param_list)nonter.pop());
+			nonter.push(par);
 			break;
 		case 14:
 			nonter.push(new params());
 			break;
 		case 15:
+			param_list parl = new param_list((param)nonter.pop(),(param_list)nonter.pop());
+			nonter.push(parl);
 			break;
 		case 16:
+			param_list parl2 = new param_list((param)nonter.pop());
+			nonter.push(parl2);
 			break;
 		case 17:
-			nonter.pop();
-			nonter.pop();
+			param pa = new param((IDENT)nonter.pop(),(type_spec)nonter.pop());
+			nonter.push(pa);
 			break;
 		case 18:
-			nonter.pop();
-			nonter.pop();
-			nonter.pop();
+			param pa2 = new param((int_literal)nonter.pop(),(IDENT)nonter.pop(),(type_spec)nonter.pop());
+			nonter.push(pa2);
 			break;
 		case 19:
 			compound_stmt cstmt = new compound_stmt((compound)nonter.pop());
 			nonter.push(cstmt);
 			break;
 		case 20:
-		case 21:
-			compound com = new compound((stmt_list)nonter.pop());
+			compound com = new compound((stmt_list)nonter.pop(),(local_decls)nonter.pop());
 			nonter.push(com);
 			break;
-		case 22:
-			compound com2 = new compound();
+		case 21:
+			compound com2 = new compound((stmt_list)nonter.pop());
 			nonter.push(com2);
 			break;
+		case 22:
+			compound com3 = new compound();
+			nonter.push(com3);
+			break;
 		case 23:
+			local_decls lodec = new local_decls((local_decl)nonter.pop(),(local_decls)nonter.pop());
+			nonter.push(lodec);
 			break;
 		case 24:
+			local_decls lodec2 = new local_decls((local_decl)nonter.pop());
+			nonter.push(lodec2);
 			break;
 		case 25:
-			new local_decl((IDENT)nonter.pop(),(type_spec)nonter.pop());
+			local_decl loc = new local_decl((IDENT)nonter.pop(),(type_spec)nonter.pop());
+			nonter.push(loc);
 			break;
 		case 26:
-			new local_decl((int_literal)nonter.pop(),(IDENT)nonter.pop(),(type_spec)nonter.pop());
+			local_decl loc2 = new local_decl((int_literal)nonter.pop(),(IDENT)nonter.pop(),(type_spec)nonter.pop());
+			nonter.push(loc2);
 			break;
 		case 27:
 			stmt_list stmtl = new stmt_list((stmt)nonter.pop(),(stmt_list)nonter.pop());

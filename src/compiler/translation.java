@@ -50,11 +50,14 @@ public class translation {
 			}
 		}
 		
-		my.YaccAnalysis(lexTranslation,regulation);
+		boolean judge = my.YaccAnalysis(lexTranslation,regulation);
 		
-		semanticAnalysis sem = new semanticAnalysis(my.producers);
-		Vector<String> result = sem.Analysis(code, regulation, lexTranslation);
-		printResult(result);
+		if(judge == true)
+		{
+			semanticAnalysis sem = new semanticAnalysis(my.producers,ml.VariSignary,ml.ConsSignary);
+			Vector<String> result = sem.Analysis(code, regulation, lexTranslation);
+			printResult(result);
+		}
 	}
 	
 	public void printResult(Vector<String> temp)

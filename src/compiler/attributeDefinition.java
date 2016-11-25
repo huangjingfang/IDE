@@ -5,15 +5,82 @@ import java.util.Vector;
 public class attributeDefinition 
 {
 	public Vector<String> code;
-	static Vector<String> data = new Vector<String>();
+	public Vector<String> data;
+	static Vector<function> functions = new Vector<function>(); //函数表
 	static int temp = 0;
 	static int seg = 0;
 	static String next = "";
 	static boolean judge = false;
+	static int returnIndex = 0;
+	static int variSignaryIndex = 0;
+	static int consSignaryIndex = 0;
+	static Vector<sNode> VariSignary; //变量符号表
+	static Vector<sNode> ConsSignary; //常量符号表
+	static boolean returnInt = false;
 	
 	public attributeDefinition()
 	{
 		code = new Vector<String>();
+		data = new Vector<String>();
+	}
+}
+
+class function
+{
+	public String name; //函数名
+	public int argsNum; //参数个数
+	public Vector<parameter> argsName; //参数名称及属性
+	public String returnType; //返回类型
+	public boolean activeJudge = false;
+	
+	public function(String name)
+	{
+		argsName = new Vector<parameter>();
+		this.name = name;
+	}
+	
+	public function(String name,int argsNum)
+	{
+		argsName = new Vector<parameter>();
+		this.name = name;
+		this.argsNum = argsNum;
+	}
+	
+	public function(String name,int argsNum,Vector<parameter> argsName)
+	{
+		argsName = new Vector<parameter>();
+		this.name = name;
+		this.argsNum = argsNum;
+		for(int i = 0 ; i < argsName.size() ; i++)
+			this.argsName.add(new parameter(argsName.get(i)));
+	}
+}
+
+class parameter
+{
+	public String name; //参数名称
+	public String type; //参数类型（数组或变量）
+	public int number; //参数大小
+	
+	public parameter(type_spec type,IDENT id)
+	{
+		this.name = id.name;
+		this.type = "Integer";
+		this.number = 1;
+	}
+	
+	public parameter(type_spec type,IDENT id,int_literal intl)
+	{
+		this.name = id.name;
+		this.type = "Array";
+		this.number = intl.lexval;
+	}
+	
+	public parameter(parameter temp)
+	{
+		this.name = temp.name;
+		this.type = temp.type;
+		this.number = temp.number;
 	}
 }
 
@@ -166,6 +233,7 @@ class expr extends attributeDefinition
 	public String place;
 	public String True;
 	public String False;
+	public int number = -1;
 	
 	public expr(String place)
 	{
@@ -289,8 +357,8 @@ class expr extends attributeDefinition
 			}
 			for(int i = 0 ; i < ex2.code.size()-1 ; i++)
 				this.code.add(ex2.code.get(i));
-			this.code.add("\t- "+"t"+Integer.toString(temp)+","+ex1.code.lastElement()+","+ex2.code.lastElement());
-			this.code.add("\tBLEZ "+"t"+Integer.toString(temp++)+",offsetTrue,-");
+			this.code.add("\t- "+"@t"+Integer.toString(temp)+","+ex1.code.lastElement()+","+ex2.code.lastElement());
+			this.code.add("\tBLEZ "+"@t"+Integer.toString(temp++)+",offsetTrue,-");
 			this.code.add("\tJ offsetFalse,-,-");
 		}
 		else if(op.equals("GE"))
@@ -305,8 +373,8 @@ class expr extends attributeDefinition
 			}
 			for(int i = 0 ; i < ex2.code.size()-1 ; i++)
 				this.code.add(ex2.code.get(i));
-			this.code.add("\t- "+"t"+Integer.toString(temp)+","+ex1.code.lastElement()+","+ex2.code.lastElement());
-			this.code.add("\tBGEZ "+"t"+Integer.toString(temp++)+",offsetTrue,-");
+			this.code.add("\t- "+"@t"+Integer.toString(temp)+","+ex1.code.lastElement()+","+ex2.code.lastElement());
+			this.code.add("\tBGEZ "+"@t"+Integer.toString(temp++)+",offsetTrue,-");
 			this.code.add("\tJ offsetFalse,-,-");
 		}
 		else if(op.equals("<"))
@@ -321,8 +389,8 @@ class expr extends attributeDefinition
 			}
 			for(int i = 0 ; i < ex2.code.size()-1 ; i++)
 				this.code.add(ex2.code.get(i));
-			this.code.add("\t- "+"t"+Integer.toString(temp)+","+ex1.code.lastElement()+","+ex2.code.lastElement());
-			this.code.add("\tBLTZ "+"t"+Integer.toString(temp++)+",offsetTrue,-");
+			this.code.add("\t- "+"@t"+Integer.toString(temp)+","+ex1.code.lastElement()+","+ex2.code.lastElement());
+			this.code.add("\tBLTZ "+"@t"+Integer.toString(temp++)+",offsetTrue,-");
 			this.code.add("\tJ offsetFalse,-,-");
 		}
 		else if(op.equals(">"))
@@ -337,8 +405,8 @@ class expr extends attributeDefinition
 			}
 			for(int i = 0 ; i < ex2.code.size()-1 ; i++)
 				this.code.add(ex2.code.get(i));
-			this.code.add("\t- "+"t"+Integer.toString(temp)+","+ex1.code.lastElement()+","+ex2.code.lastElement());
-			this.code.add("\tBGTZ "+"t"+Integer.toString(temp++)+",offsetTrue,-");
+			this.code.add("\t- "+"@t"+Integer.toString(temp)+","+ex1.code.lastElement()+","+ex2.code.lastElement());
+			this.code.add("\tBGTZ "+"@t"+Integer.toString(temp++)+",offsetTrue,-");
 			this.code.add("\tJ offsetFalse,-,-");
 		}
 		else
@@ -347,8 +415,8 @@ class expr extends attributeDefinition
 				this.code.add(new String(ex1.code.get(i)));
 			for(int i = 0 ; i < ex2.code.size()-1 ; i++)
 				this.code.add(new String(ex2.code.get(i)));
-			this.code.add("\t"+op+" t"+temp+","+ex1.code.lastElement()+","+ex2.code.lastElement());
-			this.code.add("t"+(temp++));
+			this.code.add("\t"+op+" @t"+temp+","+ex1.code.lastElement()+","+ex2.code.lastElement());
+			this.code.add("@t"+(temp++));
 		}
 	}
 	
@@ -359,15 +427,15 @@ class expr extends attributeDefinition
 		{
 			for(int i = 0 ; i < ex.code.size()-1 ; i++)
 				this.code.add(new String(ex.code.get(i)));
-			this.code.add("\t"+op+" t"+temp+",0,"+ex.code.lastElement());
-			this.code.add("t"+(temp++));
+			this.code.add("\t"+op+" @t"+temp+",0,"+ex.code.lastElement());
+			this.code.add("@t"+(temp++));
 		}
 		else if(op.equals("$") || op.equals("~"))
 		{
 			for(int i = 0 ; i < ex.code.size()-1 ; i++)
 				this.code.add(new String(ex.code.get(i)));
-			this.code.add("\t"+op+" t"+temp+",-,"+ex.code.lastElement());
-			this.code.add("t"+(temp++));
+			this.code.add("\t"+op+" @t"+temp+",-,"+ex.code.lastElement());
+			this.code.add("@t"+(temp++));
 		}
 		else if(op.equals("!"))
 		{
@@ -391,37 +459,73 @@ class expr extends attributeDefinition
 	public expr(int_literal inl)
 	{
 		super();
-		this.code.add("\t= t"+temp+",-,"+inl.lexval);
-		this.code.add("t"+(temp++));
+		this.number = inl.lexval;
+		attributeDefinition.ConsSignary.get(consSignaryIndex++).set("Integer", "Value", 1 , attributeDefinition.functions.lastElement().name);
+		this.code.add("\t= @t"+temp+",-,"+inl.lexval);
+		this.code.add("@t"+(temp++));
 	}
 	
 	public expr(IDENT id)
 	{
 		super();
-		this.code.add("\t= t"+temp+",-,"+id.name);
-		this.code.add("t"+(temp++));
+		boolean idJudge = false;
+		for(int i = 0 ; i < variSignaryIndex ; i++)
+		{
+			if(attributeDefinition.VariSignary.get(i).type.equals("Integer") && attributeDefinition.VariSignary.get(i).name.equals(id.name) && (attributeDefinition.VariSignary.get(i).actionScope.equals(attributeDefinition.functions.lastElement().name) || attributeDefinition.VariSignary.get(i).actionScope.equals("Global")))
+					idJudge = true;
+		}
+		if(idJudge == false)
+		{
+			System.out.println("未识别的标识符"+id.name);
+			System.exit(0);
+		}
+		attributeDefinition.VariSignary.removeElementAt(variSignaryIndex);
+		this.code.add("\t= @t"+temp+",-,"+id.name);
+		this.code.add("@t"+(temp++));
 	}
 	
 	public expr(expr ex,IDENT id)
 	{
 		super();
+		boolean idJudge = false;
+		for(int i = 0 ; i < variSignaryIndex ; i++)
+		{
+			if(attributeDefinition.VariSignary.get(i).type.equals("Array") && attributeDefinition.VariSignary.get(i).name.equals(id.name) && (attributeDefinition.VariSignary.get(i).actionScope.equals(attributeDefinition.functions.lastElement().name) || attributeDefinition.VariSignary.get(i).actionScope.equals("Global")))
+					idJudge = true;
+		}
+		if(idJudge == false)
+		{
+			System.out.println("未声明的标识符");
+			System.exit(0);
+		}
+		attributeDefinition.VariSignary.removeElementAt(variSignaryIndex);
 		for(int i = 0 ; i < ex.code.size()-1 ; i++)
 			this.code.add(ex.code.get(i));
-		this.code.add("\t=[] t"+temp+","+ex.code.lastElement()+","+id.name);
-		this.code.add("t"+(temp++));
+		this.code.add("\t=[] @t"+temp+","+ex.code.lastElement()+","+id.name);
+		this.code.add("@t"+(temp++));
 	}
 	
 	public expr(args arg,IDENT id)
 	{
 		super();
+		attributeDefinition.VariSignary.removeElementAt(variSignaryIndex);
+		boolean judge = false;
+		for(int i = 0 ; i < attributeDefinition.functions.size() ; i++)
+		{
+			if(attributeDefinition.functions.get(i).name.equals(id.name) && attributeDefinition.functions.get(i).argsNum == arg.number)
+				judge = true;
+		}
+		if(judge == false)
+		{
+			System.out.println("函数调用有误");
+			System.exit(0);
+		}
+		this.code.add("\tPUSH $PC+"+((arg.code.size()+1)*4)+",-,-");
 		for(int i = 0 ; i < arg.code.size() ; i++)
 			this.code.add(arg.code.get(i));
 		this.code.add("\tCALL -,-,"+id.name);
-		this.code.add("\tPOP -,-,t"+temp++);
-		for(int i = 0 ; i < arg.code.size() ; i++)
-			this.code.add("\tPOP -,-,t"+temp);
-		this.code.add("\t= t"+temp+",-,t"+(temp-1));
-		this.code.add("t"+(temp++));
+		this.code.add("\tPOP -,-,@t"+temp);
+		this.code.add("@t"+(temp++));
 	}
 }
 
@@ -430,6 +534,18 @@ class expr_stmt extends attributeDefinition
 	public expr_stmt(expr ex,IDENT id)
 	{
 		super();
+		boolean exitJudge = false;
+		for(int i = 0 ; i < variSignaryIndex ; i++)
+		{
+			if(attributeDefinition.VariSignary.get(i).name.equals(id.name) && attributeDefinition.VariSignary.get(i).type.equals("Integer"))
+				exitJudge = true;
+		}
+		if(exitJudge == false)
+		{
+			System.out.println("未声明的标识符"+id.name);
+			System.exit(0);
+		}
+		attributeDefinition.VariSignary.removeElementAt(variSignaryIndex);
 		for(int i = 0 ; i < ex.code.size()-1 ; i++)
 			this.code.add(ex.code.get(i));
 		this.code.add("\t= "+id.name+",-,"+ex.code.lastElement());
@@ -438,6 +554,34 @@ class expr_stmt extends attributeDefinition
 	public expr_stmt(expr ex2,expr ex1,IDENT id)
 	{
 		super();
+		boolean exitJudge = false;
+		boolean arrayJudge = true;
+		for(int i = 0 ; i < variSignaryIndex ; i++)
+		{
+			if(attributeDefinition.VariSignary.get(i).name.equals(id.name))
+			{
+				if(attributeDefinition.VariSignary.get(i).type.equals("Array"))
+					exitJudge = true;
+				if(ex1.number > attributeDefinition.VariSignary.get(i).size)
+					arrayJudge = false;
+			}
+		}
+		if(exitJudge == false && arrayJudge == false)
+		{
+			System.out.println("未声明的标识符"+id.name+" 数组下标溢出");
+			System.exit(0);
+		}
+		else if(exitJudge == false)
+		{
+			System.out.println("未声明的标识符"+id.name);
+			System.exit(0);
+		}
+		else if(arrayJudge == false)
+		{
+			System.out.println("数组下标溢出");
+			System.exit(0);
+		}
+		attributeDefinition.VariSignary.removeElementAt(variSignaryIndex);
 		for(int i = 0 ; i < ex1.code.size()-1 ; i++)
 			this.code.add(ex1.code.get(i));
 		for(int i = 0 ; i < ex2.code.size()-1 ; i++)
@@ -458,14 +602,37 @@ class expr_stmt extends attributeDefinition
 	public expr_stmt(args arg,IDENT id)
 	{
 		super();
-		for(int i = 0 ; i < arg.code.size() ; i++)
-			this.code.add(arg.code.get(i));
-		this.code.add("\tCALL -,-,"+id.name);
-		for(int i = 0 ; i < arg.code.size() ; i++)
+		attributeDefinition.VariSignary.removeElementAt(variSignaryIndex);
+		boolean judge = false;
+		boolean returnJudge = false;
+		for(int i = 0 ; i < attributeDefinition.functions.size() ; i++)
 		{
-			if(i == 0)
-				temp = temp + 1;
-			this.code.add("\tPOP -,-,t"+temp);
+			if(attributeDefinition.functions.get(i).name.equals(id.name) && attributeDefinition.functions.get(i).argsNum == arg.number)
+				judge = true;
+			
+			if(attributeDefinition.functions.get(i).name.equals(id.name) && attributeDefinition.functions.get(i).returnType.equals("INT"))
+				returnJudge = true;
+		}
+		if(judge == false)
+		{
+			System.out.println("函数调用有误");
+			System.exit(0);
+		}
+		
+		if(returnJudge == false)
+		{
+			this.code.add("\tPUSH $PC+"+((arg.code.size()+1)*4)+",-,-");
+			for(int i = 0 ; i < arg.code.size() ; i++)
+				this.code.add(arg.code.get(i));
+			this.code.add("\tCALL -,-,"+id.name);
+		}
+		else
+		{
+			this.code.add("\tPUSH $PC+"+((arg.code.size()+2)*4)+",-,-");
+			for(int i = 0 ; i < arg.code.size() ; i++)
+				this.code.add(arg.code.get(i));
+			this.code.add("\tCALL -,-,"+id.name);
+			this.code.add("\tPOP @t"+temp+",-,-");
 		}
 	}
 }
@@ -572,7 +739,7 @@ class if_stmt extends attributeDefinition
 		
 		if(ifstmt2.code.size() > 0)
 		{
-			this.code.add(begin2+": "+ifstmt2.code.get(0));
+			this.code.add(begin2+":"+ifstmt2.code.get(0));
 			for(int i = 1 ; i < ifstmt2.code.size() ; i++)
 				this.code.add(new String(ifstmt2.code.get(i)));
 			this.code.add("\tJ "+this.next+",-,-");
@@ -668,13 +835,17 @@ class continue_stmt extends attributeDefinition
 
 class args extends attributeDefinition
 {
+	public int number;
 	public args()
 	{
+		super();
+		this.number = 0;
 	}
 	
 	public args(arg_list list)
 	{
 		super();
+		this.number = list.number;
 		for(int i = 0 ; i < list.code.size() ; i++)
 			this.code.add(new String(list.code.get(i)));
 	}
@@ -682,9 +853,11 @@ class args extends attributeDefinition
 
 class arg_list extends attributeDefinition
 {
+	public int number;
 	public arg_list(expr ex)
 	{
 		super();
+		this.number = 1;
 		for(int i = 0 ; i < ex.code.size()-1 ; i++)
 			this.code.add(new String(ex.code.get(i)));
 		this.code.add("\tPUSH " + ex.code.lastElement() + ",-,-");
@@ -693,6 +866,7 @@ class arg_list extends attributeDefinition
 	public arg_list(expr ex,arg_list list)
 	{
 		super();
+		this.number = list.number + 1;
 		for(int i = 0 ; i < list.code.size() ; i++)
 			this.code.add(new String(list.code.get(i)));
 		for(int i = 0 ; i < ex.code.size()-1 ; i++)
@@ -708,16 +882,21 @@ class return_stmt extends attributeDefinition
 	public return_stmt()
 	{
 		super();
-		this.code.add("\tJal -,-,-");
+		attributeDefinition.returnIndex = 2;
+		this.code.add("\tPOP @t"+(temp)+",-,-");
+		this.code.add("\tJR @t"+(temp++)+",-,-");
 	}
 	
 	public return_stmt(expr ex)
 	{
 		super();
+		attributeDefinition.returnIndex = 2+ex.code.size();
+		this.code.add("\tPOP @t"+(temp)+",-,-");
 		for(int i = 0 ; i < ex.code.size()-1 ; i++)
 			this.code.add(new String(ex.code.get(i)));
-		this.code.add("\tPUSH"+ex.code.lastElement()+",-,-");
-		this.code.add("\tJal -,-,-");
+		this.code.add("\tPUSH "+ex.code.lastElement()+",-,-");
+		this.code.add("\tJR @t"+(temp++)+",-,-");
+		attributeDefinition.returnInt = true;
 	}
 }
 
@@ -879,12 +1058,31 @@ class local_decl extends attributeDefinition
 	public local_decl(IDENT id,type_spec type)
 	{
 		super();
+		for(int i = 0 ; i < variSignaryIndex ; i++)
+		{
+			if(attributeDefinition.VariSignary.get(i).name.equals(id.name) && attributeDefinition.VariSignary.get(i).actionScope.equals(functions.lastElement().name))
+			{
+				System.out.println("重复定义变量"+id.name);
+				System.exit(0);
+			}
+		}
+		attributeDefinition.VariSignary.get(variSignaryIndex++).set("Integer", "Variable", 1 , attributeDefinition.functions.lastElement().name);
 		data.add("\t"+id.name+":\t.BYTE\t?");
 	}
 	
 	public local_decl(int_literal intl,IDENT id,type_spec type)
 	{
 		super();
+		for(int i = 0 ; i < variSignaryIndex ; i++)
+		{
+			if(attributeDefinition.VariSignary.get(i).name.equals(id.name) && attributeDefinition.VariSignary.get(i).actionScope.equals(functions.lastElement().name))
+			{
+				System.out.println("重复定义变量"+id.name);
+				System.exit(0);
+			}
+		}
+		attributeDefinition.VariSignary.get(variSignaryIndex++).set("Array", "Variable", intl.lexval , attributeDefinition.functions.lastElement().name);
+		attributeDefinition.ConsSignary.get(consSignaryIndex++).set("Integer", "Value", 1 , attributeDefinition.functions.lastElement().name);
 		String temp = "\t"+id.name +":\t.BYTE";
 		for(int i = 0 ; i < intl.lexval ; i++)
 			temp = temp + "\t?";
@@ -892,8 +1090,36 @@ class local_decl extends attributeDefinition
 	}
 }
 
+class local_decls extends attributeDefinition
+{
+	public local_decls(local_decl loc,local_decls lodel)
+	{
+		super();
+		for(int i = 0 ; i < lodel.data.size() ; i++)
+			this.data.add(new String(lodel.data.get(i)));
+		for(int i = 0 ; i < loc.data.size() ; i++)
+			this.data.add(new String(loc.data.get(i)));
+	}
+	
+	public local_decls(local_decl loc)
+	{
+		super();
+		for(int i = 0 ; i < loc.data.size() ; i++)
+			this.data.add(new String(loc.data.get(i)));
+	}
+}
+
 class compound extends attributeDefinition
 {
+	public compound(stmt_list sstmt,local_decls lodel)
+	{
+		super();
+		for(int i = 0 ; i < lodel.data.size() ; i++)
+			this.data.add(new String(lodel.data.get(i)));
+		for(int i = 0 ; i < sstmt.code.size() ; i++)
+			this.code.add(new String(sstmt.code.get(i)));
+	}
+	
 	public compound(stmt_list sstmt)
 	{
 		super();
@@ -912,6 +1138,8 @@ class compound_stmt extends attributeDefinition
 	public compound_stmt(compound com)
 	{
 		super();
+		for(int i = 0 ; i < com.data.size() ; i++)
+			this.data.add(new String(com.data.get(i)));
 		for(int i = 0 ; i < com.code.size() ; i++)
 			this.code.add(new String(com.code.get(i)));
 	}
@@ -919,17 +1147,84 @@ class compound_stmt extends attributeDefinition
 
 class param extends attributeDefinition
 {
+	public param(IDENT id,type_spec type)
+	{
+		for(int i = 0 ; i < variSignaryIndex ; i++)
+		{
+			if(attributeDefinition.VariSignary.get(i).name.equals(id.name) && attributeDefinition.VariSignary.get(i).actionScope.equals(functions.lastElement().name))
+			{
+				System.out.println("重复定义参数"+id.name);
+				System.exit(0);
+			}
+		}
+		attributeDefinition.VariSignary.get(variSignaryIndex++).set("Integer", "Parameter", 1 , functions.lastElement().name);
+		attributeDefinition.functions.lastElement().argsName.add(new parameter(type,id));
+	}
 	
+	public param(int_literal intl,IDENT id,type_spec type)
+	{
+		for(int i = 0 ; i < variSignaryIndex ; i++)
+		{
+			if(attributeDefinition.VariSignary.get(i).name.equals(id.name) && attributeDefinition.VariSignary.get(i).actionScope.equals(functions.lastElement().name))
+			{
+				System.out.println("重复定义参数"+id.name);
+				System.exit(0);
+			}
+		}
+		attributeDefinition.VariSignary.get(variSignaryIndex++).set("Array", "Parameter", intl.lexval , functions.lastElement().name);
+		attributeDefinition.ConsSignary.get(consSignaryIndex++).set("Integer", "Value", 1 , functions.lastElement().name);
+		attributeDefinition.functions.lastElement().argsName.add(new parameter(type,id,intl));
+	}
 }
 
 class param_list extends attributeDefinition
 {
+	public int number;
 	
+	public param_list(param p)
+	{
+		this.number = 1;
+	}
+	
+	public param_list(param p,param_list pl)
+	{
+		this.number = pl.number+1;
+	}
 }
 
 class params extends attributeDefinition
 {
+	public int number;
 	
+	public params(param_list pl)
+	{
+		this.number = pl.number;
+		attributeDefinition.functions.lastElement().argsNum = this.number;
+		
+		for(int i = 0 ; i < attributeDefinition.functions.size()-1 ; i++)
+		{
+			if(attributeDefinition.functions.get(i).name.equals(attributeDefinition.functions.lastElement().name) && attributeDefinition.functions.get(i).argsNum == attributeDefinition.functions.lastElement().argsNum && attributeDefinition.functions.get(i).activeJudge == true)
+			{
+				System.out.println("函数重复定义");
+				System.exit(0);
+			}
+		}
+	}
+	
+	public params()
+	{
+		this.number = 0;
+		attributeDefinition.functions.lastElement().argsNum = 0;
+		
+		for(int i = 0 ; i < attributeDefinition.functions.size()-1 ; i++)
+		{
+			if(attributeDefinition.functions.get(i).name.equals(attributeDefinition.functions.lastElement().name) && attributeDefinition.functions.get(i).argsNum == attributeDefinition.functions.lastElement().argsNum && attributeDefinition.functions.get(i).activeJudge == true)
+			{
+				System.out.println("函数重复定义");
+				System.exit(0);
+			}
+		}
+	}
 }
 
 class FUNCTION_IDENT extends attributeDefinition
@@ -937,6 +1232,8 @@ class FUNCTION_IDENT extends attributeDefinition
 	public FUNCTION_IDENT(IDENT id)
 	{
 		super();
+		attributeDefinition.VariSignary.removeElementAt(variSignaryIndex);
+		attributeDefinition.functions.add(new function(id.name));
 		this.code.add(id.name);
 	}
 }
@@ -946,14 +1243,211 @@ class fun_decl extends attributeDefinition
 	public fun_decl(compound_stmt cstmt,params pparam,FUNCTION_IDENT id,type_spec type)
 	{
 		super();
+		functions.lastElement().activeJudge = true;
+		functions.lastElement().returnType = type.type;
+		
+		if(returnInt == true)
+		{
+			if(type.type.equals("VOID"))
+			{
+				System.out.println("返回类型有误");
+				System.exit(0);
+			}
+			else
+				returnInt = false;
+		}
+		else
+		{
+			if(type.type.equals("INT"))
+			{
+				System.out.println("返回类型有误");
+				System.exit(0);
+			}
+		}
+		
+		for(int i = 0 ; i < attributeDefinition.functions.size()-1 ; i++)
+		{
+			if(functions.get(i).name.equals(id.code.get(0)) && functions.get(i).activeJudge == false)
+			{
+				functions.removeElementAt(i);
+			}
+			else if(functions.get(i).name.equals(id.code.get(0)) && functions.get(i).activeJudge == true)
+			{
+				System.out.println("函数重复定义"+id.code.get(0));
+				System.exit(0);
+			}
+		}
+		this.data.addAll(cstmt.data);
+		for(int i = 0 ; i < attributeDefinition.functions.size() ; i++)
+		{
+			if(attributeDefinition.functions.get(i).name.equals(id.code.get(0)))
+			{
+				for(int j = 0 ; j < attributeDefinition.functions.get(i).argsName.size() ; j++)
+				{
+					if(attributeDefinition.functions.get(i).argsName.get(j).type.equals("Integer"))
+					{
+						this.data.add("\t"+attributeDefinition.functions.get(i).argsName.get(j).name+":\t.BYTE\t?");
+					}
+					else if(attributeDefinition.functions.get(i).argsName.get(j).type.equals("Array"))
+					{
+						String stemp = "\t"+attributeDefinition.functions.get(i).argsName.get(j).name+":\t.BYTE";
+						for(int k = 0 ; k < attributeDefinition.functions.get(i).argsName.get(j).number ; k++)
+							stemp = stemp + "\t?";
+						this.data.add(stemp);
+					}
+				}
+			}
+		}
+		
+		this.code.add(".DATA ["+id.code.get(0)+"]");
+		
+		for(int i = 0 ; i < this.data.size() ; i++)
+			this.code.add(this.data.get(i));
+		
+		this.code.add(".CODE ["+id.code.get(0)+"]");
 		this.code.add(id.code.get(0)+":");
-		for(int i = 0 ; i < cstmt.code.size() ; i++)
+		
+		Vector<String> argName = new Vector<String>();
+		Vector<String> register = new Vector<String>();
+		Vector<Integer> indexTemp = new Vector<Integer>();
+		
+		for(int i = 0 ; i < attributeDefinition.functions.size() ; i++)
+		{
+			if(attributeDefinition.functions.get(i).name.equals(id.code.get(0)))
+			{
+				for(int j = attributeDefinition.functions.get(i).argsName.size()-1 ; j >= 0 ; j--)
+				{
+					if(attributeDefinition.functions.get(i).argsName.get(j).type.equals("Integer"))
+					{
+						this.code.add("\tPOP @t"+temp+",-,-");
+						argName.add(attributeDefinition.functions.get(i).argsName.get(j).name);
+						register.add("@t"+temp);
+						indexTemp.add(-1);
+						temp = temp + 1 ;
+					}
+					else if(attributeDefinition.functions.get(i).argsName.get(j).type.equals("Array"))
+					{
+						int index = attributeDefinition.functions.get(i).argsName.get(j).number-1;
+						for(int k = 0 ; k < attributeDefinition.functions.get(i).argsName.get(j).number ; k++)
+						{
+							this.code.add("\tPOP @t"+temp+",-,-");
+							argName.add(attributeDefinition.functions.get(i).argsName.get(j).name);
+							register.add("@t"+temp);
+							indexTemp.add(index--);
+						}
+						temp = temp + 1 ;
+					}
+				}
+			}
+		}
+		
+		for(int i = 0 ; i < this.data.size() ; i++)
+		{
+			String []stemp = this.data.get(i).split("\t");
+			if(stemp.length == 4)
+			{
+				this.code.add("\t= @t"+temp+",-,"+(stemp[1].substring(0, stemp[1].length()-1)));
+				this.code.add("\tPUSH @t"+temp+",-,-");
+				temp = temp + 1;
+			}
+			else
+			{
+				for(int j = 2 ; j < stemp.length ; j++)
+				{
+					this.code.add("\t= @t"+temp+","+(j-2)+","+stemp[1].substring(0, stemp.length-1));
+					this.code.add("\tPUSH @t"+temp+",-,-");
+					temp = temp + 1;
+				}
+			}
+		}
+		
+		for(int i = 0 ; i < argName.size() ; i++)
+		{
+			if(indexTemp.get(i) == -1)
+				this.code.add("\t= "+argName.get(i)+",-,"+register.get(i));
+			else
+				this.code.add("\t= "+argName.get(i)+","+indexTemp.get(i)+","+register.get(i));
+		}
+		
+		for(int i = 0 ; i < cstmt.code.size()-attributeDefinition.returnIndex ; i++)
 			this.code.add(new String(cstmt.code.get(i)));
+		
+		for(int i = this.data.size()-1 ; i >= 0 ; i--)
+		{
+			if(judge == true)
+			{
+				this.code.add(attributeDefinition.next+":"+"\tPOP @t"+(temp)+",-,-");
+				String []stemp = this.data.get(i).split("\t");
+				if(stemp.length == 4)
+				{
+					this.code.add("\t= @t"+temp+",-,"+(stemp[1].substring(0, stemp[1].length()-1)));
+					temp = temp + 1;
+				}
+				else
+				{
+					for(int j = 2 ; j < stemp.length ; j++)
+					{
+						if(j != 2)
+							this.code.add("\tPOP @t"+(temp)+",-,-");
+						this.code.add("\t= @t"+temp+","+(j-2)+","+stemp[1].substring(0, stemp.length-1));
+						temp = temp + 1;
+					}
+				}
+				judge = false;
+			}
+			else
+			{
+				String []stemp = this.data.get(i).split("\t");
+				if(stemp.length == 4)
+				{
+					this.code.add("\tPOP @t"+(temp)+",-,-");
+					this.code.add("\t= @t"+temp+",-,"+(stemp[1].substring(0, stemp[1].length()-1)));
+					temp = temp + 1;
+				}
+				else
+				{
+					for(int j = 2 ; j < stemp.length ; j++)
+					{
+						this.code.add("\tPOP @t"+(temp)+",-,-");
+						this.code.add("\t= @t"+temp+","+(j-2)+","+stemp[1].substring(0, stemp.length-1));
+						temp = temp + 1;
+					}
+				}
+			}
+		}
+		
+		if(cstmt.code.isEmpty() || !cstmt.code.lastElement().contains("JR"))
+		{
+			if(judge == true)
+			{
+				this.code.add(attributeDefinition.next+":"+"\tPOP @t"+(temp)+",-,-");
+				this.code.add("\tJR @t"+(temp++)+",-,-");
+				judge = false;
+			}
+			else
+			{
+				this.code.add("\tPOP @t"+(temp)+",-,-");
+				this.code.add("\tJR @t"+(temp++)+",-,-");
+			}
+		}
+		else
+			for(int i = cstmt.code.size()-attributeDefinition.returnIndex ; i < cstmt.code.size() ; i++)
+				this.code.add(new String(cstmt.code.get(i)));
 	}
 	
-	public fun_decl()
+	public fun_decl(params pparam,FUNCTION_IDENT id,type_spec type)
 	{
 		super();
+		functions.lastElement().activeJudge = false;
+		functions.lastElement().returnType = type.type;
+		for(int i = 0 ; i < variSignaryIndex ; i++)
+		{
+			if(attributeDefinition.VariSignary.get(i).actionScope.equals(id.code.get(0)))
+			{
+				attributeDefinition.VariSignary.removeElementAt(i);
+				--variSignaryIndex;
+			}
+		}
 	}
 }
 
@@ -962,12 +1456,31 @@ class var_decl extends attributeDefinition
 	public var_decl(IDENT id,type_spec type)
 	{
 		super();
+		for(int i = 0 ; i < variSignaryIndex ; i++)
+		{
+			if(attributeDefinition.VariSignary.get(i).name.equals(id.name) && attributeDefinition.VariSignary.get(i).actionScope.equals("Global"))
+			{
+				System.out.println("重复定义变量"+id.name);
+				System.exit(0);
+			}
+		}
+		attributeDefinition.VariSignary.get(variSignaryIndex++).set("Integer", "Variable", 1 , "Global");
 		data.add("\t"+id.name+":\t.BYTE\t?");
 	}
 	
 	public var_decl(int_literal intl,IDENT id,type_spec type)
 	{
 		super();
+		for(int i = 0 ; i < variSignaryIndex ; i++)
+		{
+			if(attributeDefinition.VariSignary.get(i).name.equals(id.name) && attributeDefinition.VariSignary.get(i).actionScope.equals("Global"))
+			{
+				System.out.println("重复定义变量"+id.name);
+				System.exit(0);
+			}
+		}
+		attributeDefinition.VariSignary.get(variSignaryIndex++).set("Array", "Variable", intl.lexval , "Global");
+		attributeDefinition.ConsSignary.get(consSignaryIndex++).set("Integer", "Value", 1 , "Global");
 		String temp = "\t"+id.name +":\t.BYTE";
 		for(int i = 0 ; i < intl.lexval ; i++)
 			temp = temp + "\t?";
@@ -977,9 +1490,10 @@ class var_decl extends attributeDefinition
 
 class decl extends attributeDefinition
 {
-	public decl()
+	public decl(var_decl var)
 	{
 		super();
+		this.data.addAll(var.data);
 	}
 	
 	public decl(fun_decl fun)
@@ -997,6 +1511,7 @@ class decl_list extends attributeDefinition
 		super();
 		for(int i = 0 ; i < dec.code.size() ; i++)
 			this.code.add(new String(dec.code.get(i)));
+		this.data.addAll(dec.data);
 	}
 	
 	public decl_list(decl dec,decl_list decll)
@@ -1006,6 +1521,10 @@ class decl_list extends attributeDefinition
 			this.code.add(new String(decll.code.get(i)));
 		for(int i = 0 ; i < dec.code.size() ; i++)
 			this.code.add(new String(dec.code.get(i)));
+		for(int i = 0 ; i < decll.data.size() ; i++)
+			this.data.add(new String(decll.data.get(i)));
+		for(int i = 0 ; i < dec.data.size() ; i++)
+			this.data.add(new String(dec.data.get(i)));
 	}
 }
 
@@ -1015,9 +1534,8 @@ class program extends attributeDefinition
 	{
 		super();
 		this.code.add(".DATA");
-		for(int i = 0 ; i < data.size() ; i++)
-			this.code.add(new String(data.get(i)));
-		this.code.add(".CODE");
+		for(int i = 0 ; i < decll.data.size() ; i++)
+			this.code.add(new String(decll.data.get(i)));
 		for(int i = 0 ; i < decll.code.size() ; i++)
 			this.code.add(new String(decll.code.get(i)));
 	}

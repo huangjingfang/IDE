@@ -55,6 +55,7 @@ public class MainFrame extends JFrame implements ActionListener {
 	String searchContent;
 	ArrayList<Integer> searchIndex;
 	int currentIndex;
+	
 
 	private static final long serialVersionUID = 1L;
 	private JTextField search;
@@ -164,6 +165,8 @@ public class MainFrame extends JFrame implements ActionListener {
 			pathDic.put(contentlist.get(tb.getSelectedIndex()), path);
 			tb.setTitleAt(tb.getSelectedIndex(), file.getName());
 			saveFile(file, s);
+			//String t = file.getName().substring(file.getName().lastIndexOf(".")+1,file.getName().length());
+			//OPenFile(file, t);
 			break;
 		case "ËÑË÷":
 			searchContent = JOptionPane.showInputDialog(this, "ÇëÊäÈëÒªËÑË÷µÄÄÚÈÝ:");
@@ -177,7 +180,10 @@ public class MainFrame extends JFrame implements ActionListener {
 			break;
 		case "±àÒë":
 			String text = contentlist.get(tb.getSelectedIndex()).getTextArea().getText();
-			String[] lexs = text.split(" ");
+			String[] lexs = DataUtil.divide(text);
+			for(String st:lexs){
+				System.out.println(st);
+			}
 			new translation(lexs);
 			break;
 		case "¹Ø±Õ":

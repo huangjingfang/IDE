@@ -2,8 +2,11 @@ package compiler;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.Vector;
 
 public class myLex {
+	public Vector<sNode> VariSignary;
+	public Vector<sNode> ConsSignary;
 	//private int lineno = 1;
 	private int [][]TABLE = {
 			{-1,-1,-1,-1,-1,-1,-1,-1,-1,1,2,-1,-1,3,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,4,-1,-1,6,8,9,-1,11,12,13,14,15,16,-1,17,18,19,20,21,22,23,24,25,26,28,-1,30,33,34,36,-1,-1,82,82,82,82,82,82,82,82,82,82,82,82,82,82,82,82,82,82,82,82,82,82,82,82,82,82,65,-1,68,69,-1,-1,82,71,72,82,73,82,82,82,75,82,82,82,82,82,82,82,82,76,82,82,82,77,78,82,82,82,79,80,81,83,},
@@ -95,6 +98,12 @@ public class myLex {
 	};
 	private int []STATE_PATTERN = {-1,39,40,-1,-1,9,42,16,23,32,41,29,30,24,25,19,26,27,12,12,12,12,12,12,12,12,12,10,12,10,20,10,3,18,28,10,17,10,0,10,10,11,10,10,7,2,10,6,10,10,4,10,10,10,10,10,10,1,10,10,10,5,14,37,15,34,36,13,35,33,12,10,10,10,-1,10,10,10,10,21,38,22,10,31,8,12,};
 	
+	public myLex()
+	{
+		this.VariSignary = new Vector<sNode>();
+		this.ConsSignary = new Vector<sNode>();
+	}
+	
 	private String seuLex(String temp)
 	{
 		String seuLexLastLex;
@@ -154,12 +163,15 @@ public class myLex {
 				return "AND";
 			case 10:
 				//yyval.IDENT_v.ID_NAME=yytext;
+				this.VariSignary.add(new sNode(temp,"Ident"));
 				return "IDENT";
 			case 11:
 				//yyval.int_literal_v.int_val=ConvertHexToint(yytext);
+				this.ConsSignary.add(new sNode(temp,"Constant"));
 				return "HEXNUM"; 
 			case 12:
 				//yyval.int_literal_v.int_val=atoi(yytext);
+				this.ConsSignary.add(new sNode(temp,"Constant"));
 				return "DECNUM"; 
 			case 13:
 				return "LE";
@@ -240,5 +252,39 @@ public class myLex {
 		for(int i = 0 ; i < ss.length ; i++)
 			result[i] = seuLex(ss[i]);
 		return result;
+	}
+}
+
+class sNode
+{
+	public String name; //参数名
+	public String morpheme; //类型（常量或变量）
+	public String type; //类型（数组或变量）
+	public String property; //性质（参数、变量或值）
+	public int size; //大小，变量大小为1个字节，数组大小为n个字节
+	public String actionScope; //作用域
+	
+	public sNode(String name,String morpheme)
+	{
+		this.name = name;
+		this.morpheme = morpheme;
+	}
+	
+	public sNode(String name,String morpheme,String type,String property,int size,String actionScope)
+	{
+		this.name = name;
+		this.morpheme = morpheme;
+		this.type = type;
+		this.property = property;
+		this.size = size;
+		this.actionScope = actionScope;
+	}
+	
+	public void set(String type,String property,int size,String actionScope)
+	{
+		this.type = type;
+		this.property = property;
+		this.size = size;
+		this.actionScope = actionScope;
 	}
 }

@@ -27,6 +27,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
@@ -36,6 +37,7 @@ import org.fife.ui.rtextarea.RTextScrollPane;
 import org.fife.ui.rtextarea.SearchContext;
 import org.fife.ui.rtextarea.SearchEngine;
 
+import compiler.BackEndStruct;
 import compiler.translation;
 import utilities.DataUtil;
 
@@ -55,6 +57,7 @@ public class MainFrame extends JFrame implements ActionListener {
 	String searchContent;
 	ArrayList<Integer> searchIndex;
 	int currentIndex;
+	translation tr;
 	
 
 	private static final long serialVersionUID = 1L;
@@ -141,19 +144,22 @@ public class MainFrame extends JFrame implements ActionListener {
 		case "±£´æ":
 			String str = contentlist.get(tb.getSelectedIndex()).getTextArea().getText();
 			String path = pathDic.get(contentlist.get(tb.getSelectedIndex()));
+			File sfile;
 			if (path == null) {
 				chooser.showSaveDialog(this);
-				File file = chooser.getSelectedFile();
-				if(file==null)
+				sfile = chooser.getSelectedFile();
+				if(sfile==null)
 					break;
-				path = file.getAbsolutePath();
+				path = sfile.getAbsolutePath();
 				pathDic.put(contentlist.get(tb.getSelectedIndex()), path);
-				tb.setTitleAt(tb.getSelectedIndex(), file.getName());
-				saveFile(file, str);
+				tb.setTitleAt(tb.getSelectedIndex(), sfile.getName());
+				saveFile(sfile, str);
 			} else {
-				File file = new File(path);
-				saveFile(file, str);
+				sfile = new File(path);
+				saveFile(sfile, str);
 			}
+			String t = sfile.getName().substring(sfile.getName().lastIndexOf(".")+1,sfile.getName().length());
+			((RSyntaxTextArea)contentlist.get(tb.getSelectedIndex()).getTextArea()).setSyntaxEditingStyle("text/" + t);
 			break;
 		case "Áí´æÎª":
 			String s = contentlist.get(tb.getSelectedIndex()).getTextArea().getText();
@@ -165,12 +171,15 @@ public class MainFrame extends JFrame implements ActionListener {
 			pathDic.put(contentlist.get(tb.getSelectedIndex()), path);
 			tb.setTitleAt(tb.getSelectedIndex(), file.getName());
 			saveFile(file, s);
-			//String t = file.getName().substring(file.getName().lastIndexOf(".")+1,file.getName().length());
+			String st = file.getName().substring(file.getName().lastIndexOf(".")+1,file.getName().length());
+			((RSyntaxTextArea)contentlist.get(tb.getSelectedIndex()).getTextArea()).setSyntaxEditingStyle("text/" + st);
 			//OPenFile(file, t);
 			break;
 		case "ËÑË÷":
 			searchContent = JOptionPane.showInputDialog(this, "ÇëÊäÈëÒªËÑË÷µÄÄÚÈÝ:");
 			System.out.println(searchContent);
+			if(searchContent==null)
+				break;
 			SearchContext searchContext = new SearchContext(searchContent);
 			SearchEngine.find(contentlist.get(tb.getSelectedIndex()).getTextArea(), searchContext);
 			searchIndex = search(searchContent);
@@ -179,12 +188,28 @@ public class MainFrame extends JFrame implements ActionListener {
 			System.exit(0);
 			break;
 		case "±àÒë":
-			String text = contentlist.get(tb.getSelectedIndex()).getTextArea().getText();
-			String[] lexs = DataUtil.divide(text);
-			for(String st:lexs){
-				System.out.println(st);
-			}
-			new translation(lexs);
+			SwingUtilities.invokeLater(new Runnable() {
+				
+				@Override
+				public void run() {
+					// TODO Auto-generated method stub
+					String text = contentlist.get(tb.getSelectedIndex()).getTextArea().getText();
+					String[] lexs = DataUtil.divide(text);
+//					for(String st:lexs){
+//						System.out.println(st);
+//					}
+					tr = new translation(lexs);
+					try {
+						BackEndStruct bct = new BackEndStruct();
+						bct.setLex(tr.getLex());
+						System.out.println("is variTable in bct null?"+ (bct.variTable==null));
+						bct.genCode("IntermediateCode.data", "instructions.data");
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			});
 			break;
 		case "¹Ø±Õ":
 			contentlist.remove(tb.getSelectedComponent());

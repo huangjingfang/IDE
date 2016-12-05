@@ -2,6 +2,7 @@ package compiler;
 
 import java.util.Vector;
 
+
 public class attributeDefinition 
 {
 	public Vector<String> code;
@@ -460,7 +461,7 @@ class expr extends attributeDefinition
 	{
 		super();
 		this.number = inl.lexval;
-		attributeDefinition.ConsSignary.get(consSignaryIndex++).set("Integer", "Value", 1 , attributeDefinition.functions.lastElement().name);
+		ConsSignary.get(consSignaryIndex++).set("Integer", "Value", 1 , functions.lastElement().name);
 		this.code.add("\t= @t"+temp+",-,"+inl.lexval);
 		this.code.add("@t"+(temp++));
 	}
@@ -471,7 +472,7 @@ class expr extends attributeDefinition
 		boolean idJudge = false;
 		for(int i = 0 ; i < variSignaryIndex ; i++)
 		{
-			if(attributeDefinition.VariSignary.get(i).type.equals("Integer") && attributeDefinition.VariSignary.get(i).name.equals(id.name) && (attributeDefinition.VariSignary.get(i).actionScope.equals(attributeDefinition.functions.lastElement().name) || attributeDefinition.VariSignary.get(i).actionScope.equals("Global")))
+			if(VariSignary.get(i).type.equals("Integer") && VariSignary.get(i).name.equals(id.name) && (VariSignary.get(i).actionScope.equals(functions.lastElement().name) || VariSignary.get(i).actionScope.equals("Global")))
 					idJudge = true;
 		}
 		if(idJudge == false)
@@ -479,7 +480,7 @@ class expr extends attributeDefinition
 			System.out.println("未识别的标识符"+id.name);
 			System.exit(0);
 		}
-		attributeDefinition.VariSignary.removeElementAt(variSignaryIndex);
+		VariSignary.removeElementAt(variSignaryIndex);
 		this.code.add("\t= @t"+temp+",-,"+id.name);
 		this.code.add("@t"+(temp++));
 	}
@@ -490,7 +491,7 @@ class expr extends attributeDefinition
 		boolean idJudge = false;
 		for(int i = 0 ; i < variSignaryIndex ; i++)
 		{
-			if(attributeDefinition.VariSignary.get(i).type.equals("Array") && attributeDefinition.VariSignary.get(i).name.equals(id.name) && (attributeDefinition.VariSignary.get(i).actionScope.equals(attributeDefinition.functions.lastElement().name) || attributeDefinition.VariSignary.get(i).actionScope.equals("Global")))
+			if(VariSignary.get(i).type.equals("Array") && VariSignary.get(i).name.equals(id.name) && (VariSignary.get(i).actionScope.equals(functions.lastElement().name) || VariSignary.get(i).actionScope.equals("Global")))
 					idJudge = true;
 		}
 		if(idJudge == false)
@@ -498,7 +499,7 @@ class expr extends attributeDefinition
 			System.out.println("未声明的标识符");
 			System.exit(0);
 		}
-		attributeDefinition.VariSignary.removeElementAt(variSignaryIndex);
+		VariSignary.removeElementAt(variSignaryIndex);
 		for(int i = 0 ; i < ex.code.size()-1 ; i++)
 			this.code.add(ex.code.get(i));
 		this.code.add("\t=[] @t"+temp+","+ex.code.lastElement()+","+id.name);
@@ -508,11 +509,11 @@ class expr extends attributeDefinition
 	public expr(args arg,IDENT id)
 	{
 		super();
-		attributeDefinition.VariSignary.removeElementAt(variSignaryIndex);
+		VariSignary.removeElementAt(variSignaryIndex);
 		boolean judge = false;
-		for(int i = 0 ; i < attributeDefinition.functions.size() ; i++)
+		for(int i = 0 ; i < functions.size() ; i++)
 		{
-			if(attributeDefinition.functions.get(i).name.equals(id.name) && attributeDefinition.functions.get(i).argsNum == arg.number)
+			if(functions.get(i).name.equals(id.name) && functions.get(i).argsNum == arg.number)
 				judge = true;
 		}
 		if(judge == false)
@@ -520,11 +521,12 @@ class expr extends attributeDefinition
 			System.out.println("函数调用有误");
 			System.exit(0);
 		}
-		this.code.add("\tPUSH $PC+"+((arg.code.size()+1)*4)+",-,-");
+		this.code.add("\tPUSH $ra"+",-,-");
 		for(int i = 0 ; i < arg.code.size() ; i++)
 			this.code.add(arg.code.get(i));
-		this.code.add("\tCALL -,-,"+id.name);
-		this.code.add("\tPOP -,-,@t"+temp);
+		this.code.add("\tJAL "+id.name+",-,-");
+		this.code.add("\tPOP @t"+temp+",-,-");
+		this.code.add("\tPOP $ra,-,-");
 		this.code.add("@t"+(temp++));
 	}
 }
@@ -537,7 +539,7 @@ class expr_stmt extends attributeDefinition
 		boolean exitJudge = false;
 		for(int i = 0 ; i < variSignaryIndex ; i++)
 		{
-			if(attributeDefinition.VariSignary.get(i).name.equals(id.name) && attributeDefinition.VariSignary.get(i).type.equals("Integer"))
+			if(VariSignary.get(i).name.equals(id.name) && VariSignary.get(i).type.equals("Integer"))
 				exitJudge = true;
 		}
 		if(exitJudge == false)
@@ -545,7 +547,7 @@ class expr_stmt extends attributeDefinition
 			System.out.println("未声明的标识符"+id.name);
 			System.exit(0);
 		}
-		attributeDefinition.VariSignary.removeElementAt(variSignaryIndex);
+		VariSignary.removeElementAt(variSignaryIndex);
 		for(int i = 0 ; i < ex.code.size()-1 ; i++)
 			this.code.add(ex.code.get(i));
 		this.code.add("\t= "+id.name+",-,"+ex.code.lastElement());
@@ -558,11 +560,11 @@ class expr_stmt extends attributeDefinition
 		boolean arrayJudge = true;
 		for(int i = 0 ; i < variSignaryIndex ; i++)
 		{
-			if(attributeDefinition.VariSignary.get(i).name.equals(id.name))
+			if(VariSignary.get(i).name.equals(id.name))
 			{
-				if(attributeDefinition.VariSignary.get(i).type.equals("Array"))
+				if(VariSignary.get(i).type.equals("Array"))
 					exitJudge = true;
-				if(ex1.number > attributeDefinition.VariSignary.get(i).size)
+				if(ex1.number > VariSignary.get(i).size)
 					arrayJudge = false;
 			}
 		}
@@ -581,7 +583,7 @@ class expr_stmt extends attributeDefinition
 			System.out.println("数组下标溢出");
 			System.exit(0);
 		}
-		attributeDefinition.VariSignary.removeElementAt(variSignaryIndex);
+		VariSignary.removeElementAt(variSignaryIndex);
 		for(int i = 0 ; i < ex1.code.size()-1 ; i++)
 			this.code.add(ex1.code.get(i));
 		for(int i = 0 ; i < ex2.code.size()-1 ; i++)
@@ -602,15 +604,15 @@ class expr_stmt extends attributeDefinition
 	public expr_stmt(args arg,IDENT id)
 	{
 		super();
-		attributeDefinition.VariSignary.removeElementAt(variSignaryIndex);
+		VariSignary.removeElementAt(variSignaryIndex);
 		boolean judge = false;
 		boolean returnJudge = false;
-		for(int i = 0 ; i < attributeDefinition.functions.size() ; i++)
+		for(int i = 0 ; i < functions.size() ; i++)
 		{
-			if(attributeDefinition.functions.get(i).name.equals(id.name) && attributeDefinition.functions.get(i).argsNum == arg.number)
+			if(functions.get(i).name.equals(id.name) && functions.get(i).argsNum == arg.number)
 				judge = true;
 			
-			if(attributeDefinition.functions.get(i).name.equals(id.name) && attributeDefinition.functions.get(i).returnType.equals("INT"))
+			if(functions.get(i).name.equals(id.name) && functions.get(i).returnType.equals("INT"))
 				returnJudge = true;
 		}
 		if(judge == false)
@@ -621,18 +623,20 @@ class expr_stmt extends attributeDefinition
 		
 		if(returnJudge == false)
 		{
-			this.code.add("\tPUSH $PC+"+((arg.code.size()+1)*4)+",-,-");
+			this.code.add("\tPUSH $ra"+",-,-");
 			for(int i = 0 ; i < arg.code.size() ; i++)
 				this.code.add(arg.code.get(i));
-			this.code.add("\tCALL -,-,"+id.name);
+			this.code.add("\tJAL "+id.name+",-,-");
+			this.code.add("\tPOP $ra,-,-");
 		}
 		else
 		{
-			this.code.add("\tPUSH $PC+"+((arg.code.size()+2)*4)+",-,-");
+			this.code.add("\tPUSH $ra"+",-,-");
 			for(int i = 0 ; i < arg.code.size() ; i++)
 				this.code.add(arg.code.get(i));
-			this.code.add("\tCALL -,-,"+id.name);
+			this.code.add("\tJAL "+id.name+",-,-");
 			this.code.add("\tPOP @t"+temp+",-,-");
+			this.code.add("\tPOP $ra,-,-");
 		}
 	}
 }
@@ -685,7 +689,7 @@ class if_stmt extends attributeDefinition
 			this.code.add(new String(ifstmt.code.get(i)));
 		
 		judge = true;
-		attributeDefinition.next = this.next;
+		next = this.next;
 	}
 	
 	public if_stmt(stmt ifstmt2,stmt ifstmt1,expr temp)
@@ -746,7 +750,7 @@ class if_stmt extends attributeDefinition
 		}
 		
 		judge = true;
-		attributeDefinition.next = this.next;
+		next = this.next;
 		
 	}
 }
@@ -807,7 +811,7 @@ class while_stmt extends attributeDefinition
 		}
 		
 		judge = true;
-		attributeDefinition.next = this.next;
+		next = this.next;
 	}
 }
 
@@ -882,21 +886,19 @@ class return_stmt extends attributeDefinition
 	public return_stmt()
 	{
 		super();
-		attributeDefinition.returnIndex = 2;
-		this.code.add("\tPOP @t"+(temp)+",-,-");
-		this.code.add("\tJR @t"+(temp++)+",-,-");
+		returnIndex = 2;
+		this.code.add("\tJR $ra"+",-,-");
 	}
 	
 	public return_stmt(expr ex)
 	{
 		super();
-		attributeDefinition.returnIndex = 2+ex.code.size();
-		this.code.add("\tPOP @t"+(temp)+",-,-");
+		returnIndex = 2+ex.code.size();
 		for(int i = 0 ; i < ex.code.size()-1 ; i++)
 			this.code.add(new String(ex.code.get(i)));
 		this.code.add("\tPUSH "+ex.code.lastElement()+",-,-");
-		this.code.add("\tJR @t"+(temp++)+",-,-");
-		attributeDefinition.returnInt = true;
+		this.code.add("\tJR $ra"+",-,-");
+		returnInt = true;
 	}
 }
 
@@ -911,11 +913,11 @@ class stmt extends attributeDefinition
 		{
 			if(estmt.code.firstElement().split(":").length == 1)
 			{
-				this.code.add(attributeDefinition.next+":"+estmt.code.firstElement());
+				this.code.add(next+":"+estmt.code.firstElement());
 				judge = false;
 			}
 			else
-				this.code.add(estmt.code.firstElement().replaceAll(estmt.code.firstElement().split(":")[0], attributeDefinition.next));
+				this.code.add(estmt.code.firstElement().replaceAll(estmt.code.firstElement().split(":")[0], next));
 			
 			for(int i = 1 ; i < estmt.code.size() ; i++)
 				this.code.add(new String(estmt.code.get(i)));
@@ -948,7 +950,7 @@ class stmt extends attributeDefinition
 		super();
 		if(judge == true)
 		{
-			this.code.add(attributeDefinition.next+":"+rstmt.code.firstElement());
+			this.code.add(next+":"+rstmt.code.firstElement());
 			judge = false;
 			for(int i = 1 ; i < rstmt.code.size() ; i++)
 				this.code.add(new String(rstmt.code.get(i)));
@@ -965,7 +967,7 @@ class stmt extends attributeDefinition
 		super();
 		if(judge == true)
 		{
-			this.code.add(attributeDefinition.next+":"+cstmt.code.firstElement());
+			this.code.add(next+":"+cstmt.code.firstElement());
 			judge = false;
 			for(int i = 1 ; i < cstmt.code.size() ; i++)
 				this.code.add(new String(cstmt.code.get(i)));
@@ -982,7 +984,7 @@ class stmt extends attributeDefinition
 		super();
 		if(judge == true)
 		{
-			this.code.add(attributeDefinition.next+":"+bstmt.code.firstElement());
+			this.code.add(next+":"+bstmt.code.firstElement());
 			judge = false;
 			for(int i = 1 ; i < bstmt.code.size() ; i++)
 				this.code.add(new String(bstmt.code.get(i)));
@@ -1060,13 +1062,13 @@ class local_decl extends attributeDefinition
 		super();
 		for(int i = 0 ; i < variSignaryIndex ; i++)
 		{
-			if(attributeDefinition.VariSignary.get(i).name.equals(id.name) && attributeDefinition.VariSignary.get(i).actionScope.equals(functions.lastElement().name))
+			if(VariSignary.get(i).name.equals(id.name) && VariSignary.get(i).actionScope.equals(functions.lastElement().name))
 			{
 				System.out.println("重复定义变量"+id.name);
 				System.exit(0);
 			}
 		}
-		attributeDefinition.VariSignary.get(variSignaryIndex++).set("Integer", "Variable", 1 , attributeDefinition.functions.lastElement().name);
+		VariSignary.get(variSignaryIndex++).set("Integer", "Variable", 1 , functions.lastElement().name);
 		data.add("\t"+id.name+":\t.BYTE\t?");
 	}
 	
@@ -1075,14 +1077,14 @@ class local_decl extends attributeDefinition
 		super();
 		for(int i = 0 ; i < variSignaryIndex ; i++)
 		{
-			if(attributeDefinition.VariSignary.get(i).name.equals(id.name) && attributeDefinition.VariSignary.get(i).actionScope.equals(functions.lastElement().name))
+			if(VariSignary.get(i).name.equals(id.name) && VariSignary.get(i).actionScope.equals(functions.lastElement().name))
 			{
 				System.out.println("重复定义变量"+id.name);
 				System.exit(0);
 			}
 		}
-		attributeDefinition.VariSignary.get(variSignaryIndex++).set("Array", "Variable", intl.lexval , attributeDefinition.functions.lastElement().name);
-		attributeDefinition.ConsSignary.get(consSignaryIndex++).set("Integer", "Value", 1 , attributeDefinition.functions.lastElement().name);
+		VariSignary.get(variSignaryIndex++).set("Array", "Variable", intl.lexval , functions.lastElement().name);
+		ConsSignary.get(consSignaryIndex++).set("Integer", "Value", 1 , functions.lastElement().name);
 		String temp = "\t"+id.name +":\t.BYTE";
 		for(int i = 0 ; i < intl.lexval ; i++)
 			temp = temp + "\t?";
@@ -1151,29 +1153,29 @@ class param extends attributeDefinition
 	{
 		for(int i = 0 ; i < variSignaryIndex ; i++)
 		{
-			if(attributeDefinition.VariSignary.get(i).name.equals(id.name) && attributeDefinition.VariSignary.get(i).actionScope.equals(functions.lastElement().name))
+			if(VariSignary.get(i).name.equals(id.name) && VariSignary.get(i).actionScope.equals(functions.lastElement().name))
 			{
 				System.out.println("重复定义参数"+id.name);
 				System.exit(0);
 			}
 		}
-		attributeDefinition.VariSignary.get(variSignaryIndex++).set("Integer", "Parameter", 1 , functions.lastElement().name);
-		attributeDefinition.functions.lastElement().argsName.add(new parameter(type,id));
+		VariSignary.get(variSignaryIndex++).set("Integer", "Parameter", 1 , functions.lastElement().name);
+		functions.lastElement().argsName.add(new parameter(type,id));
 	}
 	
 	public param(int_literal intl,IDENT id,type_spec type)
 	{
 		for(int i = 0 ; i < variSignaryIndex ; i++)
 		{
-			if(attributeDefinition.VariSignary.get(i).name.equals(id.name) && attributeDefinition.VariSignary.get(i).actionScope.equals(functions.lastElement().name))
+			if(VariSignary.get(i).name.equals(id.name) && VariSignary.get(i).actionScope.equals(functions.lastElement().name))
 			{
 				System.out.println("重复定义参数"+id.name);
 				System.exit(0);
 			}
 		}
-		attributeDefinition.VariSignary.get(variSignaryIndex++).set("Array", "Parameter", intl.lexval , functions.lastElement().name);
-		attributeDefinition.ConsSignary.get(consSignaryIndex++).set("Integer", "Value", 1 , functions.lastElement().name);
-		attributeDefinition.functions.lastElement().argsName.add(new parameter(type,id,intl));
+		VariSignary.get(variSignaryIndex++).set("Array", "Parameter", intl.lexval , functions.lastElement().name);
+		ConsSignary.get(consSignaryIndex++).set("Integer", "Value", 1 , functions.lastElement().name);
+		functions.lastElement().argsName.add(new parameter(type,id,intl));
 	}
 }
 
@@ -1199,11 +1201,11 @@ class params extends attributeDefinition
 	public params(param_list pl)
 	{
 		this.number = pl.number;
-		attributeDefinition.functions.lastElement().argsNum = this.number;
+		functions.lastElement().argsNum = this.number;
 		
-		for(int i = 0 ; i < attributeDefinition.functions.size()-1 ; i++)
+		for(int i = 0 ; i < functions.size()-1 ; i++)
 		{
-			if(attributeDefinition.functions.get(i).name.equals(attributeDefinition.functions.lastElement().name) && attributeDefinition.functions.get(i).argsNum == attributeDefinition.functions.lastElement().argsNum && attributeDefinition.functions.get(i).activeJudge == true)
+			if(functions.get(i).name.equals(functions.lastElement().name) && functions.get(i).argsNum == functions.lastElement().argsNum && functions.get(i).activeJudge == true)
 			{
 				System.out.println("函数重复定义");
 				System.exit(0);
@@ -1214,11 +1216,11 @@ class params extends attributeDefinition
 	public params()
 	{
 		this.number = 0;
-		attributeDefinition.functions.lastElement().argsNum = 0;
+		functions.lastElement().argsNum = 0;
 		
-		for(int i = 0 ; i < attributeDefinition.functions.size()-1 ; i++)
+		for(int i = 0 ; i < functions.size()-1 ; i++)
 		{
-			if(attributeDefinition.functions.get(i).name.equals(attributeDefinition.functions.lastElement().name) && attributeDefinition.functions.get(i).argsNum == attributeDefinition.functions.lastElement().argsNum && attributeDefinition.functions.get(i).activeJudge == true)
+			if(functions.get(i).name.equals(functions.lastElement().name) && functions.get(i).argsNum == functions.lastElement().argsNum && functions.get(i).activeJudge == true)
 			{
 				System.out.println("函数重复定义");
 				System.exit(0);
@@ -1232,8 +1234,8 @@ class FUNCTION_IDENT extends attributeDefinition
 	public FUNCTION_IDENT(IDENT id)
 	{
 		super();
-		attributeDefinition.VariSignary.removeElementAt(variSignaryIndex);
-		attributeDefinition.functions.add(new function(id.name));
+		VariSignary.removeElementAt(variSignaryIndex);
+		functions.add(new function(id.name));
 		this.code.add(id.name);
 	}
 }
@@ -1265,7 +1267,7 @@ class fun_decl extends attributeDefinition
 			}
 		}
 		
-		for(int i = 0 ; i < attributeDefinition.functions.size()-1 ; i++)
+		for(int i = 0 ; i < functions.size()-1 ; i++)
 		{
 			if(functions.get(i).name.equals(id.code.get(0)) && functions.get(i).activeJudge == false)
 			{
@@ -1278,20 +1280,20 @@ class fun_decl extends attributeDefinition
 			}
 		}
 		this.data.addAll(cstmt.data);
-		for(int i = 0 ; i < attributeDefinition.functions.size() ; i++)
+		for(int i = 0 ; i < functions.size() ; i++)
 		{
-			if(attributeDefinition.functions.get(i).name.equals(id.code.get(0)))
+			if(functions.get(i).name.equals(id.code.get(0)))
 			{
-				for(int j = 0 ; j < attributeDefinition.functions.get(i).argsName.size() ; j++)
+				for(int j = 0 ; j < functions.get(i).argsName.size() ; j++)
 				{
-					if(attributeDefinition.functions.get(i).argsName.get(j).type.equals("Integer"))
+					if(functions.get(i).argsName.get(j).type.equals("Integer"))
 					{
-						this.data.add("\t"+attributeDefinition.functions.get(i).argsName.get(j).name+":\t.BYTE\t?");
+						this.data.add("\t"+functions.get(i).argsName.get(j).name+":\t.BYTE\t?");
 					}
-					else if(attributeDefinition.functions.get(i).argsName.get(j).type.equals("Array"))
+					else if(functions.get(i).argsName.get(j).type.equals("Array"))
 					{
-						String stemp = "\t"+attributeDefinition.functions.get(i).argsName.get(j).name+":\t.BYTE";
-						for(int k = 0 ; k < attributeDefinition.functions.get(i).argsName.get(j).number ; k++)
+						String stemp = "\t"+functions.get(i).argsName.get(j).name+":\t.BYTE";
+						for(int k = 0 ; k < functions.get(i).argsName.get(j).number ; k++)
 							stemp = stemp + "\t?";
 						this.data.add(stemp);
 					}
@@ -1311,27 +1313,27 @@ class fun_decl extends attributeDefinition
 		Vector<String> register = new Vector<String>();
 		Vector<Integer> indexTemp = new Vector<Integer>();
 		
-		for(int i = 0 ; i < attributeDefinition.functions.size() ; i++)
+		for(int i = 0 ; i < functions.size() ; i++)
 		{
-			if(attributeDefinition.functions.get(i).name.equals(id.code.get(0)))
+			if(functions.get(i).name.equals(id.code.get(0)))
 			{
-				for(int j = attributeDefinition.functions.get(i).argsName.size()-1 ; j >= 0 ; j--)
+				for(int j = functions.get(i).argsName.size()-1 ; j >= 0 ; j--)
 				{
-					if(attributeDefinition.functions.get(i).argsName.get(j).type.equals("Integer"))
+					if(functions.get(i).argsName.get(j).type.equals("Integer"))
 					{
 						this.code.add("\tPOP @t"+temp+",-,-");
-						argName.add(attributeDefinition.functions.get(i).argsName.get(j).name);
+						argName.add(functions.get(i).argsName.get(j).name);
 						register.add("@t"+temp);
 						indexTemp.add(-1);
 						temp = temp + 1 ;
 					}
-					else if(attributeDefinition.functions.get(i).argsName.get(j).type.equals("Array"))
+					else if(functions.get(i).argsName.get(j).type.equals("Array"))
 					{
-						int index = attributeDefinition.functions.get(i).argsName.get(j).number-1;
-						for(int k = 0 ; k < attributeDefinition.functions.get(i).argsName.get(j).number ; k++)
+						int index = functions.get(i).argsName.get(j).number-1;
+						for(int k = 0 ; k < functions.get(i).argsName.get(j).number ; k++)
 						{
 							this.code.add("\tPOP @t"+temp+",-,-");
-							argName.add(attributeDefinition.functions.get(i).argsName.get(j).name);
+							argName.add(functions.get(i).argsName.get(j).name);
 							register.add("@t"+temp);
 							indexTemp.add(index--);
 						}
@@ -1369,14 +1371,14 @@ class fun_decl extends attributeDefinition
 				this.code.add("\t= "+argName.get(i)+","+indexTemp.get(i)+","+register.get(i));
 		}
 		
-		for(int i = 0 ; i < cstmt.code.size()-attributeDefinition.returnIndex ; i++)
+		for(int i = 0 ; i < cstmt.code.size()-returnIndex ; i++)
 			this.code.add(new String(cstmt.code.get(i)));
 		
 		for(int i = this.data.size()-1 ; i >= 0 ; i--)
 		{
 			if(judge == true)
 			{
-				this.code.add(attributeDefinition.next+":"+"\tPOP @t"+(temp)+",-,-");
+				this.code.add(next+":"+"\tPOP @t"+(temp)+",-,-");
 				String []stemp = this.data.get(i).split("\t");
 				if(stemp.length == 4)
 				{
@@ -1420,7 +1422,7 @@ class fun_decl extends attributeDefinition
 		{
 			if(judge == true)
 			{
-				this.code.add(attributeDefinition.next+":"+"\tPOP @t"+(temp)+",-,-");
+				this.code.add(next+":"+"\tPOP @t"+(temp)+",-,-");
 				this.code.add("\tJR @t"+(temp++)+",-,-");
 				judge = false;
 			}
@@ -1431,7 +1433,7 @@ class fun_decl extends attributeDefinition
 			}
 		}
 		else
-			for(int i = cstmt.code.size()-attributeDefinition.returnIndex ; i < cstmt.code.size() ; i++)
+			for(int i = cstmt.code.size()-returnIndex ; i < cstmt.code.size() ; i++)
 				this.code.add(new String(cstmt.code.get(i)));
 	}
 	
@@ -1442,9 +1444,9 @@ class fun_decl extends attributeDefinition
 		functions.lastElement().returnType = type.type;
 		for(int i = 0 ; i < variSignaryIndex ; i++)
 		{
-			if(attributeDefinition.VariSignary.get(i).actionScope.equals(id.code.get(0)))
+			if(VariSignary.get(i).actionScope.equals(id.code.get(0)))
 			{
-				attributeDefinition.VariSignary.removeElementAt(i);
+				VariSignary.removeElementAt(i);
 				--variSignaryIndex;
 			}
 		}
@@ -1458,13 +1460,13 @@ class var_decl extends attributeDefinition
 		super();
 		for(int i = 0 ; i < variSignaryIndex ; i++)
 		{
-			if(attributeDefinition.VariSignary.get(i).name.equals(id.name) && attributeDefinition.VariSignary.get(i).actionScope.equals("Global"))
+			if(VariSignary.get(i).name.equals(id.name) && VariSignary.get(i).actionScope.equals("Global"))
 			{
 				System.out.println("重复定义变量"+id.name);
 				System.exit(0);
 			}
 		}
-		attributeDefinition.VariSignary.get(variSignaryIndex++).set("Integer", "Variable", 1 , "Global");
+		VariSignary.get(variSignaryIndex++).set("Integer", "Variable", 1 , "Global");
 		data.add("\t"+id.name+":\t.BYTE\t?");
 	}
 	
@@ -1473,14 +1475,14 @@ class var_decl extends attributeDefinition
 		super();
 		for(int i = 0 ; i < variSignaryIndex ; i++)
 		{
-			if(attributeDefinition.VariSignary.get(i).name.equals(id.name) && attributeDefinition.VariSignary.get(i).actionScope.equals("Global"))
+			if(VariSignary.get(i).name.equals(id.name) && VariSignary.get(i).actionScope.equals("Global"))
 			{
 				System.out.println("重复定义变量"+id.name);
 				System.exit(0);
 			}
 		}
-		attributeDefinition.VariSignary.get(variSignaryIndex++).set("Array", "Variable", intl.lexval , "Global");
-		attributeDefinition.ConsSignary.get(consSignaryIndex++).set("Integer", "Value", 1 , "Global");
+		VariSignary.get(variSignaryIndex++).set("Array", "Variable", intl.lexval , "Global");
+		ConsSignary.get(consSignaryIndex++).set("Integer", "Value", 1 , "Global");
 		String temp = "\t"+id.name +":\t.BYTE";
 		for(int i = 0 ; i < intl.lexval ; i++)
 			temp = temp + "\t?";

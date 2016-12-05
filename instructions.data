@@ -1,0 +1,72 @@
+.DATA
+	number:	.BYTE	?
+	c:	.BYTE	?	?	?
+.DATA [main]
+	a:	.BYTE	?
+	b:	.BYTE	?
+	d:	.BYTE	?
+	e:	.BYTE	?
+	f:	.BYTE	?
+.CODE [main]
+main:
+	lw $t0,a
+	lw $t1,b
+	lw $t2,d
+	lw $t3,e
+	lw $t4,f
+	ori $t5,$zero,1
+	sw $t5,a
+	ori $t6,$zero,2
+	sw $t6,b
+	mult $t7,$t6
+	mflo $t9
+	sw $t9,d
+	sw $t0,f
+	lw $t0,a
+	sw $t2,f
+	lw $t2,f
+	mult $t0,$t6
+	mflo $t2
+	sw $t2,f
+	sw $t3,f
+	ori $t3,$zero,0
+	sw $t4,f
+	lw $t4,a
+	sw $t6,b
+	lw $t6,f
+	add $t6,$t4,$t6
+	beq $t6,$t7,/offset
+	j s2
+s1:	jal debug
+	sw $t7,a
+	j s3
+s2:	ori $t8,$zero,4
+	sw $t8,a
+	ori $t9,$zero,5
+	sw $t9,b
+	j s3
+:	lw $t0,e
+	jr @t28
+.DATA [debug]
+	b:	.BYTE	?
+	a:	.BYTE	?
+.CODE [debug]
+debug:
+	sw $t1,a
+	sw $t2,f
+	ori $t2,$zero,2
+	sw $t2,b
+	sw $t3,f
+	ori $t3,$zero,2
+	sw $t4,f
+	lw $t4,f
+	sw $t6,f
+	lw $t6,f
+	div $t9,$t4
+	mflo $t6
+	sw $t6,f
+	lw $t6,a
+	sw $t8,f
+	lw $t8,f
+	add $t8,$t6,$t7
+	jr $ra

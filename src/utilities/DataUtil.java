@@ -11,47 +11,8 @@ import javax.swing.text.StyleConstants;
 import javax.swing.text.StyleConstants.FontConstants;
 
 public class DataUtil {
-	public static String[] keywords;
 	public static int fontSize = 14;// 字体大小
-	public static SimpleAttributeSet purple;// 关键字的属性集
-	public static SimpleAttributeSet blue;// 引号内的属性集
-	public static SimpleAttributeSet lightGreen;// 注释的属性集
-	public static SimpleAttributeSet normal;// 其他的默认属性集
-	public static SimpleAttributeSet find;// 搜索结果
-
-	static {
-		keywords = new String[] { "abstract", "do", "import", "public", "throws", "boolean", "double", "instanceof",
-				"return", "transient", "break", "else", "int", "short", "try", "byte", "extends", "interface", "static",
-				"void", "case", "final", "long", "strictfp", "volatile", "catch", "finally", "native", "super", "while",
-				"char", "float", "new", "switch", "class", "for", "package", "synchronized", "continue", "if",
-				"private", "this", "default", "implements", "protected", "const", "goto", "null", "true", "false" };
-
-		purple = new SimpleAttributeSet();
-		StyleConstants.setForeground(purple, new Color(135, 38, 87));
-		FontConstants.setFontFamily(purple, "Consolas");
-		FontConstants.setFontSize(purple, DataUtil.fontSize);
-
-		blue = new SimpleAttributeSet();
-		StyleConstants.setForeground(blue, Color.BLUE);
-		FontConstants.setFontFamily(blue, "Consolas");
-		FontConstants.setFontSize(blue, DataUtil.fontSize);
-
-		lightGreen = new SimpleAttributeSet();
-		StyleConstants.setForeground(lightGreen, new Color(0, 201, 87));
-		FontConstants.setFontFamily(lightGreen, "Microsoft YaHei UI");
-		FontConstants.setFontSize(lightGreen, DataUtil.fontSize);
-
-		normal = new SimpleAttributeSet();
-		StyleConstants.setForeground(normal, Color.BLACK);
-		FontConstants.setFontFamily(normal, "Consolas");
-		FontConstants.setFontSize(normal, DataUtil.fontSize);
-
-		find = new SimpleAttributeSet();
-		StyleConstants.setForeground(find, Color.WHITE);
-		StyleConstants.setBackground(find, Color.RED);
-		FontConstants.setFontFamily(find, "Consolas");
-		FontConstants.setFontSize(find, DataUtil.fontSize);
-	};
+	
 
 	public static int STATE_TEXT = 1; // 普通文本
 	public static int STATE_DOUBLE_QUOTE = 2; // 双引号
@@ -226,16 +187,19 @@ public class DataUtil {
 	public static String[] divide(String str) {
 		ArrayList<String> res = new ArrayList<>();
 		str = str.replaceAll("\\s\\((\\s)*", "\\(");
-		String nonWord = "(;|\\(|\\)|\\{|\\}|=|\\+|-|\\*|/|>|<)";
-		// System.out.println(str);
-		String regexpr = "(\\s)*(\\w)+(\\s|;|\\(|\\)|\\{|\\}|=|\\+|-|\\*|/|>|<)";
+		str = str.replaceAll("\\s\\)(\\s)*", "\\)");
+		str = str.replaceAll("\\s\\[(\\s)*", "\\[");
+		str = str.replaceAll("\\s\\](\\s)*", "\\]");
+		String nonWord = "(;|\\(|\\)|\\{|\\}|=|\\+|-|\\*|/|%|> |>>|< |<<|\\[|\\])";
+		//System.out.println(str);
+		String regexpr = "(\\s)*(\\w)+(\\s|;|\\(|\\)|\\{|\\}|=|\\+|-|\\*|/|%|> |>>|< |<<|\\[|\\])";
 		String insideregex = "(\\w)+(\\s)";
 		for (int i = 0; i <= str.length(); i++) {
 			String sub = str.substring(0, i);
-			if (sub.matches(regexpr)) {
-				if (sub.matches(insideregex)) {
+			if (sub.matches(regexpr)) {//产生一个词素
+				if (sub.matches(insideregex)) {//该词素以空白符结尾
 					res.add(sub.trim());
-				} else {
+				} else {//词素以;=+-等结尾
 					res.add(sub.substring(0, sub.length() - 1));
 					res.add(sub.substring(sub.length() - 1));
 				}
@@ -275,9 +239,4 @@ public class DataUtil {
 		}
 	}*/
 
-	static String[] instructionsSet = new String[] { "ADD", "ADDU", "ADDI", "ADDIU", "SUB", "SUBU", "MULT", "MULTU",
-			"DIV", "DIVU", "AND", "ANDI", "OR", "ORI", "XOR", "XORI", "NOR", "LUI", "SLL", "SRL", "SRA", "SLLV", "SRLV",
-			"SRAV", "LB", "LBU", "LH", "LHU", "LW", "SB", "SH", "SW", "BEQ", "BNE", "SLT", "SLTI", "SLTU", "SLTIU",
-			"BGEZ", "BGTZ", "BLEZ", "BLTZ", "BZEZAL", "BLTZAL", "J", "JR", "JAL", "JALR", "MFHI", "MFLO", "MTHI",
-			"MTLO", "BREAK", "SYSCALL", "ERET", "MFC0", "MTC0" };
 }

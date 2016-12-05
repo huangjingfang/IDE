@@ -45,7 +45,10 @@ public interface SyntaxConstants {
 	 */
 	String SYNTAX_STYLE_ASSEMBLER_X86	= "text/asm";
 
-
+	/**
+	 * Style for highlighting MIPS assembler.
+	 */
+	String SYNTAX_STYLE_ASSEMBLER_MIPS	= "text/mips";
 	/**
 	 * Style for highlighting BBCode.
 	 */

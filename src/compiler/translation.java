@@ -5,10 +5,12 @@ import java.io.IOException;
 import java.util.Vector;
 
 public class translation {
+	myYacc my;
+	myLex ml;
 	public translation(String []code)
 	{
-		myYacc my = new myYacc();
-		myLex ml = new myLex();
+		my = new myYacc();
+		ml = new myLex();
 		
 		String []lexTranslation = ml.LexAnalysis(code);
 		
@@ -51,12 +53,16 @@ public class translation {
 		}
 		
 		boolean judge = my.YaccAnalysis(lexTranslation,regulation);
-		
+		System.out.println("Judge:"+judge);
 		if(judge == true)
 		{
 			semanticAnalysis sem = new semanticAnalysis(my.producers,ml.VariSignary,ml.ConsSignary);
 			Vector<String> result = sem.Analysis(code, regulation, lexTranslation);
 			printResult(result);
+			for(sNode node:attributeDefinition.VariSignary){
+				System.out.println(node.actionScope+"\t"+node.morpheme+"\t"+
+			node.name+"\t"+node.property+"\t"+node.size+"\t"+node.type);
+			}
 		}
 	}
 	
@@ -76,5 +82,8 @@ public class translation {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+	public myLex getLex(){
+		return ml;
 	}
 }

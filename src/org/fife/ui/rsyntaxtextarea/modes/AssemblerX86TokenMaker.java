@@ -1800,7 +1800,9 @@ public final void yybegin(int newState) {
           }
         case 19: break;
         case 5:
-          { addToken(Token.COMMENT_EOL); addNullToken(); return firstToken;
+          { addToken(Token.COMMENT_EOL); 
+          	System.out.println("Token Comment!");
+          	addNullToken(); return firstToken;
           }
         case 20: break;
         case 14:

@@ -4,16 +4,22 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Vector;
 
+import javax.swing.SwingUtilities;
+
+import GUI.MainFrame;
+import utilities.DataUtil;
+
 public class translation {
 	myYacc my;
 	myLex ml;
+	int tips = 0;
 	public translation(String []code)
 	{
 		my = new myYacc();
 		ml = new myLex();
 		
 		String []lexTranslation = ml.LexAnalysis(code);
-		
+		tips =1;
 		String []temp = new String[code.length+1];
 		for(int i = 0 ; i < code.length ; i++)
 			temp[i] = code[i];
@@ -53,16 +59,18 @@ public class translation {
 		}
 		
 		boolean judge = my.YaccAnalysis(lexTranslation,regulation);
+		tips = 2;
 		System.out.println("Judge:"+judge);
 		if(judge == true)
 		{
 			semanticAnalysis sem = new semanticAnalysis(my.producers,ml.VariSignary,ml.ConsSignary);
 			Vector<String> result = sem.Analysis(code, regulation, lexTranslation);
+			tips = 3;
 			printResult(result);
-			for(sNode node:attributeDefinition.VariSignary){
-				System.out.println(node.actionScope+"\t"+node.morpheme+"\t"+
-			node.name+"\t"+node.property+"\t"+node.size+"\t"+node.type);
-			}
+//			for(sNode node:attributeDefinition.VariSignary){
+//				System.out.println(node.actionScope+"\t"+node.morpheme+"\t"+
+//			node.name+"\t"+node.property+"\t"+node.size+"\t"+node.type);
+//			}
 		}
 	}
 	
@@ -85,5 +93,8 @@ public class translation {
 	}
 	public myLex getLex(){
 		return ml;
+	}
+	public int getTips(){
+		return tips;
 	}
 }

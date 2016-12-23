@@ -1,0 +1,33 @@
+package mipsAssembler.isa;
+
+public enum OprandMode {
+	R_RS_RT_RD(OprandType.REGISTER,OprandType.REGISTER,OprandType.REGISTER),
+	R_RS_RT(OprandType.REGISTER,OprandType.REGISTER),
+	R_RD(OprandType.REGISTER),
+	R_RS(OprandType.REGISTER),
+	R_CP0(OprandType.REGISTER,OprandType.REGISTER),
+	R_RT_RD_SHAMT(OprandType.REGISTER,OprandType.REGISTER,OprandType.SHIFT_AMOUNT),
+	R_RS_RD(OprandType.REGISTER,OprandType.REGISTER),
+	R_CODE(OprandType.CODE),
+	I_RS_RT_IMME(OprandType.REGISTER,OprandType.REGISTER,OprandType.IMMEDIATE),
+	I_RS_IMME(OprandType.REGISTER,OprandType.IMMEDIATE),
+	I_RS_RT_VARI(OprandType.REGISTER,OprandType.VARIABLE,OprandType.REGISTER),
+	I_RS_RT_OFFSET(OprandType.REGISTER,OprandType.OFFSET,OprandType.REGISTER),
+	I_RT_RS_OFFSET(OprandType.REGISTER,OprandType.OFFSET,OprandType.REGISTER),
+	I_RS_OFFSET(OprandType.REGISTER,OprandType.OFFSET),
+	J_ADDR(OprandType.ADDRESS);
+	
+	public OprandType[] types;
+	OprandMode(OprandType op0) {
+		// TODO Auto-generated constructor stub
+		types = new OprandType[]{op0};
+	}
+	OprandMode(OprandType op0,OprandType op1) {
+		// TODO Auto-generated constructor stub
+		types = new OprandType[]{op0,op1};
+	}
+	OprandMode(OprandType op0,OprandType op1,OprandType op2) {
+		// TODO Auto-generated constructor stub
+		types = new OprandType[]{op0,op1,op2};
+	}
+}

@@ -12,9 +12,18 @@ public class semanticAnalysis
 	{
 		this.producers = producers;
 		this.nonter = new Stack<Object>();
+		attributeDefinition.temp = 0;
+		attributeDefinition.seg = 0;
+		attributeDefinition.next = "";
+		attributeDefinition.judge = false;
+		attributeDefinition.returnIndex = 0;
+		attributeDefinition.variSignaryIndex = 0;
+		attributeDefinition.consSignaryIndex = 0;
+		attributeDefinition.returnInt = false;
 		attributeDefinition.VariSignary = VariSignary;
 		attributeDefinition.ConsSignary = ConsSignary;
 		attributeDefinition.functions.clear();
+		
 	}
 	
 	public Vector<String> Analysis(String []code,Vector<Integer> action,String []lex)

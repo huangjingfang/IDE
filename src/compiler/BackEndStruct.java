@@ -8,18 +8,24 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class BackEndStruct {
+	private static final String FUNCTION_NAME_REGEX = "\\.CODE\\S+(\\w+)";
+	
+	private static final Matcher m_FUNCTION_NAME_REGEX = Pattern.compile(FUNCTION_NAME_REGEX).matcher("");
+	
 	HashMap<String, String> registerDesc;// 寄存器描述符（寄存器2临时变量）
 	HashMap<String, String> variDesc;// 变量描述符（变量2临时变量）
-	HashMap<String, Integer> seg2index;// label对应的位置
-	HashMap<String, Integer> func2index;// 函数代码对应的位置
+	HashMap<String, Long> seg2index;// label对应的位置
+	HashMap<String, Long> func2index;// 函数代码对应的位置
 	HashMap<String, String> vari2addr;// 临时变量的地址
+	HashMap<String, String> tempVDesc;//临时变量对应的常量值
 	int start;// 程序的起始地址
-	int currentIndex;// 目前的程序地址偏移量
+	long currentIndex;// 目前的程序地址偏移量
 	LinkedList<String> regTeble;// 能用的寄存器列表
 	int regIndex;
 	String writePath;// 输出文件地址
@@ -33,12 +39,14 @@ public class BackEndStruct {
 		registerDesc = new HashMap<>();
 		variDesc = new HashMap<>();
 		regTeble = new LinkedList<>();
-		String[] regName = new String[] { "$t0", "$t1", "$t2", "$t3", "$t4", "$t5", "$t6", "$t7", "$t8", "$t9" };
+		String[] regName = new String[] { "$t0", "$t1", "$t2", "$t3", "$t4", "$t5", "$t6", "$t7", "$t8", "$t9"};
+				//"$s0","$s1","$s2","$s2","$s3","$s4","$s5","$s6","$s7"};
 		for (String s : regName)
 			regTeble.add(s);
 		seg2index = new HashMap<>();
 		func2index = new HashMap<>();
 		vari2addr = new HashMap<>();
+		tempVDesc = new HashMap<>();
 		start = 0;
 		currentIndex = 0;
 	}
@@ -60,9 +68,16 @@ public class BackEndStruct {
 			toReturn[0] = regTeble.get(regIndex);
 			regIndex = (regIndex+1)%regTeble.size();
 		}
+		System.out.println(arg+" 分配到寄存器 "+toReturn[0]);
 		return toReturn;
 	}
 
+	private String getReg(){
+		String str =  regTeble.get(regIndex);
+		regIndex = (regIndex+1)%regTeble.size();
+		return str;
+	}
+	
 	private String[] getReg(String arg, String arg1) {
 		String[] toReturn = new String[2];
 		String[] paras = { arg, arg1 };
@@ -72,18 +87,22 @@ public class BackEndStruct {
 			if (registerDesc.containsValue(paras[i])) {
 				while (it.hasNext()) {
 					String key = it.next();
-					if (registerDesc.get(key).equals(paras[i]))
+					if (registerDesc.get(key).equals(paras[i])){
 						toReturn[i] = key;
+						break;
+					}
 				}
 			}
 		}
 
 		if (toReturn[0] != null && toReturn[1] != null) {
+			System.out.println(arg+" 分配到寄存器 "+toReturn[0]+"\t"+arg1+" 分配到寄存器 "+toReturn[1] );
 			return toReturn;
 		} else if (toReturn[0] == null && toReturn[1] == null) {
 			toReturn[0] = regTeble.get(regIndex);
 			toReturn[1] = regTeble.get((regIndex+1)%regTeble.size());
 			regIndex = (regIndex+2)%regTeble.size();
+			System.out.println(arg+" 分配到寄存器 "+toReturn[0]+"\t"+arg1+" 分配到寄存器 "+toReturn[1] );
 			return toReturn;
 		} else {
 			if (toReturn[0] == null) {
@@ -97,6 +116,7 @@ public class BackEndStruct {
 				toReturn[1] = temp.get(regIndex%temp.size());
 				regIndex = (regIndex+1)%regTeble.size();
 			}
+			System.out.println(arg+" 分配到寄存器 "+toReturn[0]+"\t"+arg1+" 分配到寄存器 "+toReturn[1] );
 			return toReturn;
 		}
 
@@ -104,20 +124,17 @@ public class BackEndStruct {
 
 	public String[] getReg(String arg0, String arg1, String result) {
 		String[] toReturn = new String[3];
-		String[] qContent = new String[3];
-		qContent[0] = arg0;
-		qContent[1] = arg1;
-		qContent[2] = result;
+		String[] qContent = new String[]{arg0,arg1,result};
 		Iterator<String> it = registerDesc.keySet().iterator();
 		for (int i = 0; i < 3; i++) {
 			// 如果寄存器中已经存在该变量的值，直接返回该寄存器
 			if (registerDesc.containsValue(qContent[i])) {
 				while (it.hasNext()) {
 					String key = it.next();
-					if (registerDesc.get(key).equals(qContent[i]))
+					if (registerDesc.get(key).equals(qContent[i])){
 						toReturn[i] = key;
-					else
-						continue;
+						break;
+					}
 				}
 			}
 		}
@@ -130,12 +147,14 @@ public class BackEndStruct {
 			}
 		}
 		if (count == 0) {
+			System.out.println(arg0+" 分配到寄存器 "+toReturn[0]+"\t"+arg1+" 分配到寄存器 "+toReturn[1]+"\t"+result+" 分配到寄存器 "+toReturn[2] );
 			return toReturn;
 		} else if (count == 3) {
 			toReturn[0] = regTeble.get(regIndex);
 			toReturn[1] = regTeble.get((regIndex+1)%regTeble.size());
 			toReturn[2] = regTeble.get((regIndex+2)%regTeble.size());
 			regIndex = (regIndex+3)%regTeble.size();
+			System.out.println(arg0+" 分配到寄存器 "+toReturn[0]+"\t"+arg1+" 分配到寄存器 "+toReturn[1]+"\t"+result+" 分配到寄存器 "+toReturn[2] );
 			return toReturn;
 		} else if (count == 1) {
 			LinkedList<String> temp = new LinkedList<>(regTeble);
@@ -143,6 +162,7 @@ public class BackEndStruct {
 			temp.remove(toReturn[indexs[1]]);
 			toReturn[indexs[0]] = temp.get(regIndex%temp.size());
 			regIndex = (regIndex+1)%regTeble.size();
+			System.out.println(arg0+" 分配到寄存器 "+toReturn[0]+"\t"+arg1+" 分配到寄存器 "+toReturn[1]+"\t"+result+" 分配到寄存器 "+toReturn[2] );
 			return toReturn;
 		} else {
 			LinkedList<String> temp = new LinkedList<>(regTeble);
@@ -151,12 +171,13 @@ public class BackEndStruct {
 			temp.remove(toReturn[indexs[0]]);
 			toReturn[indexs[1]] = temp.get((regIndex+1)%temp.size());
 			regIndex = (regIndex+2)%regTeble.size();
+			System.out.println(arg0+" 分配到寄存器 "+toReturn[0]+"\t"+arg1+" 分配到寄存器 "+toReturn[1]+"\t"+result+" 分配到寄存器 "+toReturn[2] );
 			return toReturn;
 		}
 
 	}
 
-	public void genCode(String input, String path) throws IOException {
+	public void genCode(String input, String path) throws Exception {
 		// TODO Auto-generated method stub
 		writePath = path;
 		BufferedReader reader = new BufferedReader(new FileReader(input));
@@ -197,23 +218,20 @@ public class BackEndStruct {
 		System.out.println("指令代码生成结束");
 	}
 
-
-
-	private String processHeader(String header) {
-		StringBuilder toReturn = new StringBuilder();
-
-		return toReturn.toString();
-	}
-
-	private String processBody(String body) {
+	private String processBody(String body) throws Exception {
 		String[] lexs = body.split("\n");
 		StringBuilder toReturn = new StringBuilder();
 		// 处理.Code [FNAME] 和函数名
 		toReturn.append(lexs[0] + "\n");
-		String funName = lexs[1].split(":")[0];
-		toReturn.append(funName + ":\n");
-		func2index.put(funName, currentIndex);
-		System.out.println(funName);
+		m_FUNCTION_NAME_REGEX.reset(lexs[0]);
+		if(m_FUNCTION_NAME_REGEX.matches()){
+			String funName = m_FUNCTION_NAME_REGEX.group(1);	
+			toReturn.append(funName + ":\n");
+			func2index.put(funName, currentIndex);
+		}else{
+			throw new Exception("函数不存在："+lexs[0]);
+		}
+		//System.out.println(funName);
 		// 处理函数内部指令
 		for (int i = 2; i < lexs.length; i++) {
 			String[] devide = lexs[i].split(":");
@@ -247,7 +265,9 @@ public class BackEndStruct {
 	}
 
 	/**
-	 * 事先检查所有变量是否在寄存器中，如果在直接跳过，否则将变量装载进入寄存器
+	 * 事先检查中间变量是否在寄存器中，如果中间在，直接跳过，否则将寄存中的内容写回到内存中
+	 * 
+	 * 
 	 * @param addr 寄存器的地址
 	 * @param qValues 需要存入该寄存器的临时变量
 	 * @return
@@ -255,82 +275,55 @@ public class BackEndStruct {
 	private String pre_process(String[] addr, String[] qValues) {
 		StringBuilder builder = new StringBuilder();
 		for (int i = 0; i < addr.length; i++) {
-			//寄存器中的变量就是该临时变量的值
+			//寄存器中的变量就是该临时变量的值或为空。
 			if(registerDesc.get(addr[i])==null||registerDesc.get(addr[i]).equals(qValues[i])){
 				continue;
 			}else{
-				//寄存器中的变量不是该临时变量的值,将寄存器中的值写入variDesc
+				//两种情况：1、寄存器中的值是一个暂时变量；2、寄存器中的值是一个真实变量
 				String tempVar = registerDesc.get(addr[i]);
-				String realVar = getKey(variDesc, tempVar);
+				String realVar = getKey(variDesc, tempVar);//获取寄存器中的值对应的真实变量
+				System.out.println("addr:"+addr[i]+"\toldTV:"+tempVar+"\tnewTV:"+qValues[i]+"\toldRV:"+realVar+"\tnewRV:"+getKey(variDesc, qValues[i]));
 				if(realVar==null){
 					//开辟新的一块空间存储该临时变量
 					builder.append("\tsw "+ addr[i]+",tempVari\n");
 				}else{
 					builder.append("\tsw "+ addr[i]+","+realVar+"\n");
+					//新临时变量并没有对应一个实际变量
+
 				}
-				//新临时变量并没有对应一个实际变量
 				String newVar = getKey(variDesc, qValues[i]);
 				if(newVar==null){
 					continue;
 				}else {
-					builder.append("\t" + "lw " + addr[i] + "," + newVar + "\n");
+					builder.append("\tlw " + addr[i] + "," + newVar + "\n");
 				}
 			}
-			
-//			//如果寄存器中存在一个值并且这个值不是目标变量值，则将寄存器中的值保存到变量中
-//			if (registerDesc.containsKey(addr[i]) &&
-//					(registerDesc.get(addr[i]) != null)|(!registerDesc.get(addr[i]).equals(qValues[i]))) {
-//				// 将原变量转出到内存，并将新变量写入寄存器
-//				builder.append(changeValue(addr[i], registerDesc.get(addr[i]), qValues[i]));
-//			} else{
-//				//否则判断该临时变量，如果这个临时变量并没有对应一个实际变量，那么直接跳过这一步，否则将实际变量load到这个寄存器中
-//				if()
-//				builder.append("\t" + "lw " + addr[i] + "," + qValues[i] + "\n");
-//				registerDesc.put(addr[i], qValues[i]);
-//			}
 		}
 		return builder.toString();
 	}
-
-	/**
-	 * 将寄存器中原来的值替换为新的值
-	 * @param addr 寄存器地址
-	 * @param oldVar 原来寄存器中的临时变量
-	 * @param newVar 将要load到寄存器中的新的临时变量
-	 * @return
-	 */
-//	private String changeValue(String addr, String oldVar, String newVar) {
-//		StringBuilder strb = new StringBuilder();
-//		String tempAddr = registerDesc.get(addr);
-//		String vari = getKey(variDesc, tempAddr);
-//		strb.append("\t" + "sw " + addr + "," + vari + "\n");
-//		strb.append("\t" + "lw " + addr + "," + newVar + "\n");
-//		registerDesc.put(addr, newVar);
-//		return strb.toString();
-//	}
 
 	private String genCode(Quaternary q) {
 		String[] addr;
 		String[] qValues;
 		StringBuilder builder = new StringBuilder();
-		// System.out.println(q.op.length());
+		System.out.println("四元式："+q.op.trim()+" "+q.result+","+q.arg0+","+q.arg1);
 		switch (q.op.trim()) {
 		case "+":
-			//System.out.println(variTable==null);
-			if (q.arg0.matches("(\\d)+")) {
-				// 立即数加，arg0为立即数，arg1为变量或寄存器名，result为寄存器名
-				if (variTable.get(getKey(variDesc, q.arg1)).type.equalsIgnoreCase("unsigned")) {
+			if (q.arg1.matches("(\\d)+")) {
+				// 立即数加，arg1为立即数，arg0为变量或寄存器名，result为寄存器名
+				System.out.println(getKey(variDesc, q.arg0)+variTable.get(getKey(variDesc, q.arg0)));
+				if (variTable.get(getKey(variDesc, q.arg0)).type.equalsIgnoreCase("unsigned")) {
 					// 无符号数加
-					addr = getReg(q.arg1, q.result);
-					qValues = new String[]{q.arg1,q.result};
+					addr = getReg(q.arg0, q.result);
+					qValues = new String[]{q.arg0,q.result};
 					builder.append(pre_process(addr, qValues));
-					builder.append("\t" + "addiu " + addr[1] + "," + q.arg0 + "," + addr[0] + "\n");
-				} else if (variTable.get(getKey(variDesc, q.arg1)).type.equalsIgnoreCase("Integer")) {
+					builder.append("\t" + "addiu " + addr[1] + "," + addr[0] + "," + q.arg1 + "\n");
+				} else if (variTable.get(getKey(variDesc, q.arg0)).type.equalsIgnoreCase("Integer")) {
 					// 整数加
-					addr = getReg(q.arg1, q.result);
-					qValues = new String[]{q.arg1,q.result};
+					addr = getReg(q.arg0, q.result);
+					qValues = new String[]{q.arg0,q.result};
 					builder.append(pre_process(addr, qValues));
-					builder.append("\t" + "addi " + addr[1] + "," + q.arg0 + "," + addr[0] + "\n");
+					builder.append("\t" + "addi " + addr[1] + "," + addr[0] + "," + q.arg1 + "\n");
 				}
 			} else {
 				if (variTable.get(getKey(variDesc, q.arg1))!=null&&variTable.get(getKey(variDesc, q.arg1)).type.equalsIgnoreCase("unsigned")) {
@@ -429,39 +422,59 @@ public class BackEndStruct {
 				//builder.append(pre_process(addr, new String[]{q.result}));
 				builder.append("\t" + "ori " + addr[0] +",$zero," + q.arg1 + "\n");
 				registerDesc.put(addr[0], q.result);
+				tempVDesc.put(q.result, q.arg1);
 			} else if (q.arg1.matches("@t(\\d)+")) {
 				// 将寄存器中的值写回变量save
-				Iterator<String> it = registerDesc.keySet().iterator();
-				while(it.hasNext()){
-					String item = it.next();
-					System.out.println(item+"\t\t"+registerDesc.get(item));
-				}
 				addr = getReg(q.arg1);
-				System.out.println(q.arg1+"得到的寄存器为"+addr[0]);
-				System.out.println(addr[0]);
+				//System.out.println(q.arg1+"得到的寄存器为"+addr[0]);
+				//System.out.println(addr[0]);
 				builder.append("\tsw "+addr[0]+ ","+q.result+ "\n");
 				variDesc.put(q.result, q.arg1);
+				registerDesc.put(addr[0],q.arg1);
+				System.out.println(q.result+":\t"+q.arg1);
 			} else {
 				//将变量存入寄存器load
-				if(variDesc.get(q.arg1)!=null){
-					variDesc.put(q.arg1, q.result);
-					String address = getKey(registerDesc, q.result);
-					registerDesc.put(address, q.result);
-				}else{
+				//如果variDesc中有一个临时变量对应一个临时变量，并且该临时变量在寄存器中，
+				String tempVar = variDesc.get(q.arg1);
+				String varAddr = getKey(registerDesc, tempVar);
+				System.out.println(registerDesc);
+				if(tempVar == null||varAddr==null){
 					addr = getReg(q.result);
-					builder.append("\tlw "+addr[0]+","+q.arg1+ "\n");
 					String oldVar = registerDesc.get(addr[0]);
 					String vari = getKey(variDesc, oldVar);
+					System.out.println("OldValue:"+oldVar+"\tVari:"+vari);
 					if(vari!=null){
 						variDesc.put(vari, null);
 					}
 					registerDesc.put(addr[0], q.result);
 					variDesc.put(q.arg1, q.result);
+					builder.append(pre_process(addr, new String[]{q.result}));
+					builder.append("\tlw "+addr[0]+","+q.arg1+ "\n");
+				}else{
+					variDesc.put(q.arg1, q.result);
+					registerDesc.put(varAddr, q.result);
+					System.out.println(q.arg1+":"+q.result+"\t"+varAddr+":"+q.result);
 				}
 			}
+			
+			
 			break;
 		case "=[]":
-
+			//将数组中的变量导入到寄存器中
+			if(q.result.matches("@t(\\d)+")){
+				addr = getReg(q.result);
+				qValues = new String[]{q.result};
+				builder.append(pre_process(addr, qValues));
+				int offset = Integer.parseInt(tempVDesc.get(q.arg0))*8;
+				builder.append("\tlw "+addr[0]+","+offset+"("+q.arg1+")"+"\n");
+			}else{
+				//将寄存器中的内容导入到变量内存中
+				addr = getReg(q.arg1);
+				qValues = new String[]{q.arg1};
+				builder.append(pre_process(addr, qValues));
+				int offset = Integer.parseInt(tempVDesc.get(q.arg0))*8;
+				builder.append("\tsw "+addr[0]+","+offset+"("+q.result+")"+"\n");
+			}
 			break;
 		case "&":
 			if(q.arg1.matches("(\\d)+")){
@@ -509,29 +522,67 @@ public class BackEndStruct {
 			}
 			break;
 		case "~":
-			addr = getReg(q.arg0, q.arg1, q.result);
-			qValues = new String[] { q.arg0, q.arg1, q.result };
+			if(q.arg0.trim().equals("-")){
+				addr = getReg(q.arg1,q.result);
+				qValues = new String[]{q.arg1,q.result};
+				builder.append(pre_process(addr, qValues));
+				builder.append("\t" + "nor " + addr[1] + ",$zero," + addr[0] + "\n");
+			}else{
+				addr = getReg(q.arg0, q.arg1, q.result);
+				qValues = new String[] { q.arg0, q.arg1, q.result };
+				builder.append(pre_process(addr, qValues));
+				builder.append("\t" + "nor " + addr[2] + "," + addr[0] + "," + addr[1] + "\n");
+			}
+			break;
+		case "$":
+			addr = getReg(q.arg1,q.result);
+			qValues = new String[]{q.arg1,q.result};
 			builder.append(pre_process(addr, qValues));
-			builder.append("\t" + "nor " + addr[2] + "," + addr[0] + "," + addr[1] + "\n");
+			String vari = getKey(variDesc, q.arg1);
+			builder.append("\t"+addr[1]+" address of "+vari+"\n");
+			break;	
+		case "LSHIFT":
+			if(!q.arg1.matches("@t(\\d)+")){
+				//立即数位移
+				addr = getReg(q.arg0, q.result);
+				qValues = new String[]{q.arg0,q.result};
+				builder.append(pre_process(addr, qValues));
+				builder.append("\tsll "+addr[1]+","+addr[0]+","+q.arg1+"\n");
+			}else{
+				//非立即数位移
+				addr = getReg(q.arg0,q.arg1,q.result);
+				qValues = new String[]{q.arg0,q.arg1,q.result};
+				builder.append(pre_process(addr, qValues));
+				builder.append("\tsllv "+addr[2]+","+addr[0]+","+addr[1]+"\n");
+			}
 			break;
-		case "<<":
-			
-			break;
-		case ">>":
-			
+		case "RSHIFT":
+			if(!q.arg1.matches("@t(\\d)+")){
+				//立即数位移
+				addr = getReg(q.arg0, q.result);
+				qValues = new String[]{q.arg0,q.result};
+				builder.append(pre_process(addr, qValues));
+				builder.append("\tsrl "+addr[1]+","+addr[0]+","+q.arg1+"\n");
+			}else{
+				//非立即数位移
+				addr = getReg(q.arg0,q.arg1,q.result);
+				qValues = new String[]{q.arg0,q.arg1,q.result};
+				builder.append(pre_process(addr, qValues));
+				builder.append("\tsrlv "+addr[2]+","+addr[0]+","+addr[1]+"\n");
+			}
 			break;
 		case "BEQ":
-			addr = getReg(q.arg0, q.arg1);
-			qValues = new String[] { q.arg0, q.arg1 };
+			addr = getReg(q.arg0, q.result);
+			qValues = new String[] { q.arg0, q.result };
 			builder.append(pre_process(addr, qValues));
-			builder.append("\t" + "beq " + addr[0] + "," + addr[1] + ",/offset" + "\n");
+			builder.append("\t" + "beq " + addr[0] + "," + addr[1] + ",/offset"+ "\n");
 
 			break;
 		case "BNE":
-			addr = getReg(q.arg0, q.arg1);
-			qValues = new String[] { q.arg0, q.arg1 };
+			addr = getReg(q.arg0, q.result);
+			qValues = new String[] { q.arg0, q.result };
 			builder.append(pre_process(addr, qValues));
-			builder.append("\t" + "bne " + addr[0] + "," + addr[1] + "/offset"+ "\n");
+			builder.append("\t" + "bne " + addr[0] + "," + addr[1] + ",/offset"+ "\n");
 			break;
 		case "BLEZ":
 			addr = getReg(q.arg0);
@@ -557,9 +608,6 @@ public class BackEndStruct {
 			builder.append(pre_process(addr, qValues));
 			builder.append("\t" + "bgtz " + addr[0] + "," + "/offset"+ "\n");
 			break;
-		case "CALL":
-
-			break;
 		case "POP":
 //			builder.append("\tlw $a1, 0($sp)"+ "\n");
 //			builder.append("\tadd $v0,$v0,$a1"+ "\n");
@@ -572,7 +620,7 @@ public class BackEndStruct {
 //			builder.append("\tsw $ra, 4($sp)"+ "\n");
 //			builder.append("\tsw $a1, 0($sp)"+ "\n");
 //			builder.append("\tor $a1,$a0,$zero"+ "\n");
-//			builder.append("\tjal mult"+ "\n");
+//			builder.append("\tjal"+ "\n");
 			break;
 		case "J":
 			builder.append("\tj "+q.result+ "\n");
@@ -588,7 +636,7 @@ public class BackEndStruct {
 		default:
 			break;
 		}
-
+		System.out.println("该四元式产生的代码为："+builder.toString());
 		return builder.toString();
 	}
 
@@ -603,13 +651,16 @@ public class BackEndStruct {
 	}
 	
 	private String getKey(Map<String,String> m,Object value){
+		System.out.println(m);
 		Iterator<String> it = m.keySet().iterator();
-		String o = null;
+		String toReturn = null;
 		while(it.hasNext()){
-			o = it.next();
-			if(m.get(o)!=null&&m.get(o).equals(value))
-				return o;
+			String key = it.next();
+			if(m.get(key)!=null&&m.get(key).equals(value)){
+				toReturn = key;
+			}else continue;
+				
 		}
-		return o;
+		return toReturn;
 	}
 }

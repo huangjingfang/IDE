@@ -10,9 +10,11 @@ import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyleConstants.FontConstants;
 
+import GUI.MainFrame;
+
 public class DataUtil {
 	public static int fontSize = 14;// 字体大小
-	
+	public static MainFrame mainframe;
 
 	public static int STATE_TEXT = 1; // 普通文本
 	public static int STATE_DOUBLE_QUOTE = 2; // 双引号
@@ -20,6 +22,7 @@ public class DataUtil {
 	public static int STATE_MULTI_LINE_COMMENT = 4; // 多行注释
 	public static int STATE_LINE_COMMENT = 5; // 单行注释
 
+	public static String label;
 	private static int lineNumber; // 行号
 	private static boolean enableLineNumber = true; // 开启行号标志
 
@@ -190,18 +193,30 @@ public class DataUtil {
 		str = str.replaceAll("\\s\\)(\\s)*", "\\)");
 		str = str.replaceAll("\\s\\[(\\s)*", "\\[");
 		str = str.replaceAll("\\s\\](\\s)*", "\\]");
-		String nonWord = "(;|\\(|\\)|\\{|\\}|=|\\+|-|\\*|/|%|> |>>|< |<<|\\[|\\])";
+		String nonWord = "(;|\\(|\\)|\\{|\\}|=|!=|\\+|-|\\*|/|%|>|<|\\[|\\]|\\$|~|&|\\|)";
 		//System.out.println(str);
-		String regexpr = "(\\s)*(\\w)+(\\s|;|\\(|\\)|\\{|\\}|=|\\+|-|\\*|/|%|> |>>|< |<<|\\[|\\])";
+		String regexpr = "(\\s)*(\\w)+(\\s|;|\\(|\\)|\\{|\\}|=|!=|\\+|-|\\*|/|%|>|<|\\[|\\]|\\$|~|&|\\|)";
 		String insideregex = "(\\w)+(\\s)";
+		String doubleop = "(\\w)+(!=)";
 		for (int i = 0; i <= str.length(); i++) {
 			String sub = str.substring(0, i);
 			if (sub.matches(regexpr)) {//产生一个词素
 				if (sub.matches(insideregex)) {//该词素以空白符结尾
 					res.add(sub.trim());
 				} else {//词素以;=+-等结尾
-					res.add(sub.substring(0, sub.length() - 1));
-					res.add(sub.substring(sub.length() - 1));
+					if(sub.matches(doubleop)){
+						if(sub.matches("(\\S)+\\s")){
+							res.add(sub.substring(0, sub.length() - 2).trim());
+							res.add(sub.substring(sub.length() - 2,sub.length() - 1).trim());
+						}else{
+							res.add(sub.substring(0, sub.length() - 2).trim());
+							res.add(sub.substring(sub.length() - 2).trim());
+						}
+						
+					}else{
+						res.add(sub.substring(0, sub.length() - 1));
+						res.add(sub.substring(sub.length() - 1));
+					}
 				}
 				str = str.substring(i).trim();
 				i = 0;
@@ -219,7 +234,29 @@ public class DataUtil {
 				result[i - offset] = "==";
 				offset++;
 				i++;
-			} else
+			}else if(i < res.size() - 1 && res.get(i).equals("<")){
+				if(res.get(i + 1).equals("=")){
+					result[i - offset] = "<=";
+					offset++;
+					i++;
+				}else if(res.get(i + 1).equals("<")){
+					result[i - offset] = "<<";
+					offset++;
+					i++;
+				}
+				
+			}else if(i < res.size() - 1 && res.get(i).equals(">")){
+				if(res.get(i + 1).equals("=")){
+					result[i - offset] = ">=";
+					offset++;
+					i++;
+				}else if(res.get(i + 1).equals(">")){
+					result[i - offset] = ">>";
+					offset++;
+					i++;
+				}
+				
+			}else
 				result[i - offset] = res.get(i);
 		}
 		String[] updateRes = new String[res.size() - offset];

@@ -13,7 +13,11 @@ public class mipsTranslation {
 			strTemp[i] = code[i];
 		strTemp[code.length] = "#";
 		code = strTemp;
+		
 		String []lex = ml.LexAnalysis(code);
+		for(String s:code){
+			System.out.print(s+"\t");
+		}
 		my.YaccAnalysis(lex, regulation);
 		mipsSemantic ms = new mipsSemantic(my.producers);
 		ms.Analysis(code, regulation, lex);

@@ -9,10 +9,12 @@ import java.awt.event.KeyEvent;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -39,7 +41,12 @@ import org.fife.ui.rtextarea.SearchEngine;
 
 import compiler.BackEndStruct;
 import compiler.translation;
+import mipsAssembler.AssembleContext;
 import utilities.DataUtil;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JTextPane;
+import java.awt.Color;
 
 public class MainFrame extends JFrame implements ActionListener {
 	/**
@@ -58,10 +65,12 @@ public class MainFrame extends JFrame implements ActionListener {
 	ArrayList<Integer> searchIndex;
 	int currentIndex;
 	translation tr;
+//	public JLabel status;
+	public JTextPane textPane;
 	
 
 	private static final long serialVersionUID = 1L;
-	private JTextField search;
+//	private JTextField search;
 
 	// 构造函数，创建各种元素
 	public MainFrame() {
@@ -87,14 +96,14 @@ public class MainFrame extends JFrame implements ActionListener {
 				new JMenuItem("另存为"), new JMenuItem("搜索"), new JMenuItem("关闭"), new JMenuItem("设置"),
 				new JMenuItem("退出") };
 		editItems = new JMenuItem[] { new JMenuItem("复制"), new JMenuItem("粘贴"), new JMenuItem("撤销") };
-		compileItems = new JMenuItem[] { new JMenuItem("编译"), new JMenuItem("添加词法"), new JMenuItem("添加文法"),
+		compileItems = new JMenuItem[] { new JMenuItem("编译"), new JMenuItem("汇编(MIPS)"), new JMenuItem("添加文法"),
 				new JMenuItem("make") };
 		helpItems = new JMenuItem[] { new JMenuItem("关于") };
 		chooser = new JFileChooser();
 		setAccelerator();
 		init();
 
-		getContentPane().setLayout(new BorderLayout(0, 0));
+		getContentPane().setLayout(new BorderLayout(5, 0));
 		tb = new JTabbedPane();
 		getContentPane().add(tb, BorderLayout.CENTER);
 
@@ -102,18 +111,28 @@ public class MainFrame extends JFrame implements ActionListener {
 		pathDic.put(content, null);
 		tb.addTab("New tab", null, content, null);
 
-		JMenuBar menuBar_1 = new JMenuBar();
-		menuBar_1.setLayout(new GridLayout(0, 5));
-		getContentPane().add(menuBar_1, BorderLayout.SOUTH);
-
-		search = new JTextField();
-		search.setHorizontalAlignment(SwingConstants.LEFT);
-		menuBar_1.add(search);
-		search.setColumns(10);
-
-		JMenuItem status = new JMenuItem("status:");
-		menuBar_1.add(status);
-
+//		JMenuBar menuBar_1 = new JMenuBar();
+//		menuBar_1.setLayout(new GridLayout(0, 5));
+//		//getContentPane().add(menuBar_1, BorderLayout.SOUTH);
+//
+//		search = new JTextField();
+//		search.setHorizontalAlignment(SwingConstants.LEFT);
+//		menuBar_1.add(search);
+//		search.setColumns(10);
+//		
+//		JButton search_btn = new JButton("搜索");
+//		menuBar_1.add(search_btn);
+//		
+//		status = new JLabel("状态:");
+//		menuBar_1.add(status);
+		
+		textPane = new JTextPane();
+		textPane.setForeground(Color.RED);
+		textPane.setBackground(Color.WHITE);
+		textPane.setEditable(false);
+		//textPane.setText("Wrong\n\n\n\n\n");
+		getContentPane().add(textPane, BorderLayout.SOUTH);
+		DataUtil.mainframe = this;
 	}
 
 	public static void main(String[] args) {
@@ -195,21 +214,67 @@ public class MainFrame extends JFrame implements ActionListener {
 					// TODO Auto-generated method stub
 					String text = contentlist.get(tb.getSelectedIndex()).getTextArea().getText();
 					String[] lexs = DataUtil.divide(text);
+					for(int i=0;i<lexs.length;i++){
+						if(lexs[i].trim().equals("+")){
+							if(lexs[i-1].trim().matches("(\\d)+")){
+								String temp = lexs[i-1];
+								lexs[i-1] = lexs[i+1];
+								lexs[i+1] = temp;
+							}
+						}
+					}
 //					for(String st:lexs){
 //						System.out.println(st);
 //					}
 					tr = new translation(lexs);
+					int tips = tr.getTips();
+					switch (tips) {
+					case 0:
+						textPane.setText("状态：词法分析错误\n\n\n");
+						break;
+					case 1:
+						textPane.setText("状态：语法分析错误错误\n\n\n");
+						break;
+					case 2:
+						textPane.setText("状态：语义分析错误错误\n\n\n");
+						break;
+					default:
+						textPane.setText("状态：编译成功\n\n\n");
+						break;
+					}
 					try {
 						BackEndStruct bct = new BackEndStruct();
 						bct.setLex(tr.getLex());
 						System.out.println("is variTable in bct null?"+ (bct.variTable==null));
 						bct.genCode("IntermediateCode.data", "instructions.data");
-					} catch (IOException e) {
+					} catch (Exception e) {
 						// TODO Auto-generated catch block
-						e.printStackTrace();
+						textPane.setText(e.getMessage());
 					}
 				}
 			});
+			
+			break;
+		case "汇编(MIPS)":
+			//String text = contentlist.get(tb.getSelectedIndex()).getTextArea().getText();
+			//String[] lines = text.split("\n");
+			File current = new File(pathDic.get(contentlist.get(tb.getSelectedIndex()))); 
+			if(!current.exists()){
+				JOptionPane.showMessageDialog(this, "请先保存文件");
+			}else{
+				try {
+					InputStream ins = new FileInputStream(current);
+					AssembleContext content = AssembleContext.parseContext(ins);
+					content.Parse();
+					ins.close();
+					textPane.setText("汇编成功\n\n\n");
+				} catch (Exception e1) {
+					// TODO Auto-generated catch block
+					textPane.setText(e1.toString()+"\n\n\n");
+					e1.printStackTrace();
+				}	
+			}
+			
 			break;
 		case "关闭":
 			contentlist.remove(tb.getSelectedComponent());
@@ -217,6 +282,8 @@ public class MainFrame extends JFrame implements ActionListener {
 			tb.remove(tb.getSelectedIndex());
 
 			break;
+		case "关于":
+			JOptionPane.showMessageDialog(this, "Mini C IDE\n\t东南大学计算机科学与工程学院计算机综合设计作品！");
 		default:
 			break;
 		}
@@ -267,17 +334,8 @@ public class MainFrame extends JFrame implements ActionListener {
 		fileItems[4].setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F, ActionEvent.CTRL_MASK));
 		fileItems[5].setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_E, ActionEvent.CTRL_MASK));
 		compileItems[0].setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F5, ActionEvent.CTRL_MASK));
+		compileItems[1].setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F7, ActionEvent.CTRL_MASK));
 	}
-
-	// 创建一个tab，并将tab加入到一个list中便于管理
-//	private RTextScrollPane createContentPane() {
-//		RSyntaxTextArea pane = new RSyntaxTextArea();
-//		pane.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA);
-//		pane.setCodeFoldingEnabled(true);
-//		RTextScrollPane sp = new RTextScrollPane(pane);
-//		contentlist.add(sp);
-//		return sp;
-//	}
 
 	// 创建一个tab，发现该tab文件的后缀从而打开对应的语法高亮功能，并将tab加入到一个list中便于管理
 	private RTextScrollPane createContentPane(String language) {

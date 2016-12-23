@@ -1,91 +1,94 @@
 .DATA
-	number:	.BYTE	?
-	c:	.BYTE	?	?	?
+	number:	.WORD	?
+	c:	.WORD	?	?	?
 .DATA [main]
-	a:	.BYTE	?
-	b:	.BYTE	?
-	d:	.BYTE	?
-	e:	.BYTE	?
-	f:	.BYTE	?
+	a:	.WORD	?
+	b:	.WORD	?
+	d:	.WORD	?
+	e:	.WORD	?
+	f:	.WORD	?
 .CODE [main]
 main:
-	= @t18,-,a
-	PUSH @t18,-,-
-	= @t19,-,b
-	PUSH @t19,-,-
-	= @t20,-,d
-	PUSH @t20,-,-
-	= @t21,-,e
+	= @t21,-,a
 	PUSH @t21,-,-
-	= @t22,-,f
+	= @t22,-,b
 	PUSH @t22,-,-
+	= @t23,-,d
+	PUSH @t23,-,-
+	= @t24,-,e
+	PUSH @t24,-,-
+	= @t25,-,f
+	PUSH @t25,-,-
 	= @t0,-,1
 	= a,-,@t0
 	= @t1,-,2
 	= b,-,@t1
 	= @t2,-,a
-	= @t3,-,b
-	* @t4,@t2,@t3
+	+ @t4,@t2,5
 	= d,-,@t4
 	= @t5,-,a
 	= @t6,-,b
-	% @t7,@t5,@t6
-	= f,-,@t7
-	= @t8,-,0
-	= @t9,-,a
-	= @t10,-,b
-	+ @t11,@t9,@t10
-	=[] c,@t8,@t11
+	* @t7,@t5,@t6
+	= d,-,@t7
+	= @t8,-,a
+	= @t9,-,b
+	% @t10,@t8,@t9
+	= f,-,@t10
+	= @t11,-,0
 	= @t12,-,a
 	= @t13,-,b
-	BEQ @t12,@t13,s1
+	+ @t14,@t12,@t13
+	=[] c,@t11,@t14
+	= @t15,-,a
+	= @t16,-,b
+	BEQ @t15,@t16,s1
 	J s2,-,-
 s1:	PUSH $ra,-,-
-	= @t14,-,b
-	PUSH @t14,-,-
+	= @t17,-,b
+	PUSH @t17,-,-
 	JAL debug,-,-
-	POP @t15,-,-
+	POP @t18,-,-
 	POP $ra,-,-
-	= a,-,@t15
+	= a,-,@t18
 	J s3,-,-
-s2:	= @t16,-,4
-	= a,-,@t16
-	= @t17,-,5
-	= b,-,@t17
+s2:	= @t19,-,4
+	= a,-,@t19
+	= @t20,-,5
+	= b,-,@t20
 	J s3,-,-
-:	POP @t23,-,-
-	= @t23,-,f
-	POP @t24,-,-
-	= @t24,-,e
-	POP @t25,-,-
-	= @t25,-,d
-	POP @t26,-,-
-	= @t26,-,b
+s3:	POP @t26,-,-
+	= @t26,-,f
 	POP @t27,-,-
-	= @t27,-,a
+	= @t27,-,e
 	POP @t28,-,-
-	JR @t28,-,-
+	= @t28,-,d
+	POP @t29,-,-
+	= @t29,-,b
+	POP @t30,-,-
+	= @t30,-,a
+	POP @t31,-,-
+	JR @t31,-,-
 .DATA [debug]
-	b:	.BYTE	?
-	a:	.BYTE	?
+	b:	.WORD	?
+	a:	.WORD	?
 .CODE [debug]
 debug:
-	POP @t35,-,-
-	= @t36,-,b
-	PUSH @t36,-,-
-	= @t37,-,a
-	PUSH @t37,-,-
-	= a,-,@t35
-	= @t29,-,2
 	POP @t38,-,-
-	= @t38,-,a
-	POP @t39,-,-
 	= @t39,-,b
-	= b,-,@t29
-	= @t30,-,a
-	= @t31,-,b
+	PUSH @t39,-,-
+	= @t40,-,a
+	PUSH @t40,-,-
+	= a,-,@t38
 	= @t32,-,2
-	/ @t33,@t31,@t32
-	+ @t34,@t30,@t33
-	PUSH @t34,-,-
+	POP @t41,-,-
+	= @t41,-,a
+	POP @t42,-,-
+	= @t42,-,b
+	= b,-,@t32
+	= @t33,-,a
+	= @t34,-,b
+	= @t35,-,2
+	/ @t36,@t34,@t35
+	+ @t37,@t33,@t36
+	PUSH @t37,-,-
 	JR $ra,-,-

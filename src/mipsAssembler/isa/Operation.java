@@ -38,21 +38,24 @@ public enum Operation {
 	JALR("jalr",new InsType_R(InsType.OP0,0b001001),OprandMode.R_RS_RD),
 	BREAK("break",new InsType_R(InsType.OP0,0b001101),OprandMode.R_CODE),
 	SYSCALL("syscall",new InsType_R(InsType.OP0,0b001100),OprandMode.R_CODE),
-	ERET("eret",new InsType_R(0b010000,0b011000,InsType.ERET),OprandMode.R_CODE),//i-type instruction
+	ERET("eret",new InsType_R(0b010000,0b011000,InsType.ERET),OprandMode.R_CODE),
+	//i-type instruction
 	ADDI("addi",new InsType_I(0b001000),OprandMode.I_RS_RT_IMME),
 	ADDIU("addiu",new InsType_I(0b001001),OprandMode.I_RS_RT_IMME),
 	ANDI("andi",new InsType_I(0b001100),OprandMode.I_RS_RT_IMME),
 	ORI("ori",new InsType_I(0b001101),OprandMode.I_RS_RT_IMME),
 	XORI("xori",new InsType_I(0b001110),OprandMode.I_RS_RT_IMME),
 	LUI("lui",new InsType_I(0b001111),OprandMode.I_RS_IMME),
-	LB("lb",new InsType_I(0b100000),OprandMode.I_RS_RT_VARI),
-	LBU("lbu",new InsType_I(0b100100),OprandMode.I_RS_RT_VARI),
-	LH("lh",new InsType_I(0b100001),OprandMode.I_RS_RT_VARI),
-	LHU("lhu",new InsType_I(0b100101),OprandMode.I_RS_RT_VARI),
-	SB("sb",new InsType_I(0b101000),OprandMode.I_RS_RT_VARI),
-	SH("sh",new InsType_I(0b101001),OprandMode.I_RS_RT_VARI),
-	LW("lw",new InsType_I(0b100011),OprandMode.I_RS_RT_VARI),
-	SW("sw",new InsType_I(0b101011),OprandMode.I_RS_RT_VARI),
+	
+	LB("lb",new InsType_I(0b100000),OprandMode.I_RS_RT_OFFSET),
+	LBU("lbu",new InsType_I(0b100100),OprandMode.I_RS_RT_OFFSET),
+	LH("lh",new InsType_I(0b100001),OprandMode.I_RS_RT_OFFSET),
+	LHU("lhu",new InsType_I(0b100101),OprandMode.I_RS_RT_OFFSET),
+	SB("sb",new InsType_I(0b101000),OprandMode.I_RS_RT_OFFSET),
+	SH("sh",new InsType_I(0b101001),OprandMode.I_RS_RT_OFFSET),
+	LW("lw",new InsType_I(0b100011),OprandMode.I_RS_RT_OFFSET),
+	SW("sw",new InsType_I(0b101011),OprandMode.I_RS_RT_OFFSET),
+	
 	BEQ("beq",new InsType_I(0b000100),OprandMode.I_RS_RT_OFFSET),
 	BNE("bne",new InsType_I(0b000101),OprandMode.I_RS_RT_OFFSET),
 	BGEZ("bgez",new InsType_I(0b000001,0b00001),OprandMode.I_RS_OFFSET),
@@ -65,6 +68,7 @@ public enum Operation {
 	SLTIU("sltiu",new InsType_I(0b001011),OprandMode.I_RS_RT_IMME),//j-type instruction
 	J("j",new InsType_J(0b000010),OprandMode.J_ADDR),
 	JAL("jal",new InsType_J(0b000011),OprandMode.J_ADDR);
+
 	
 	
 	private String opName;
@@ -78,9 +82,9 @@ public enum Operation {
 	
 	public static Operation getOperationByName(String name){
 		for(Operation operation:values()){
-			if(operation.opName.equalsIgnoreCase(name))
+			if(operation.opName.equalsIgnoreCase(name)){
 				return operation;
-			else continue;
+			}else continue;
 		}
 		return null;
 	}

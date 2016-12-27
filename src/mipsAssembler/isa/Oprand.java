@@ -189,13 +189,14 @@ public class Oprand {
 			if(!name.matches("([a-zA-Z][0-9a-zA-Z._$]*)")){
 				throw new Exception("Invalid Label :"+name);
 			}else{
-				long label_addr = context.getLabelAddress(name);
-				if(label_addr<0){
-					throw new Exception("No label:"+name);
-				}else{
-					String temp = Long.toBinaryString(label_addr);
-					return Utils.format(temp, length);
-				}
+				return name;
+//				long label_addr = context.getLabelAddress(name);
+//				if(label_addr<0){
+//					throw new Exception("No label:"+name);
+//				}else{
+//					String temp = Long.toBinaryString(label_addr);
+//					return Utils.format(temp, length);
+//				}
 			}
 		case CODE:
 			if(!name.matches("\\d+")){

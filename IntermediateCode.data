@@ -1,94 +1,64 @@
 .DATA
-	number:	.WORD	?
-	c:	.WORD	?	?	?
-.DATA [main]
 	a:	.WORD	?
-	b:	.WORD	?
-	d:	.WORD	?
-	e:	.WORD	?
-	f:	.WORD	?
-.CODE [main]
-main:
-	= @t21,-,a
-	PUSH @t21,-,-
-	= @t22,-,b
-	PUSH @t22,-,-
-	= @t23,-,d
-	PUSH @t23,-,-
-	= @t24,-,e
-	PUSH @t24,-,-
-	= @t25,-,f
-	PUSH @t25,-,-
-	= @t0,-,1
-	= a,-,@t0
-	= @t1,-,2
-	= b,-,@t1
-	= @t2,-,a
-	+ @t4,@t2,5
-	= d,-,@t4
-	= @t5,-,a
-	= @t6,-,b
-	* @t7,@t5,@t6
-	= d,-,@t7
-	= @t8,-,a
-	= @t9,-,b
-	% @t10,@t8,@t9
-	= f,-,@t10
-	= @t11,-,0
-	= @t12,-,a
-	= @t13,-,b
-	+ @t14,@t12,@t13
-	=[] c,@t11,@t14
-	= @t15,-,a
-	= @t16,-,b
-	BEQ @t15,@t16,s1
-	J s2,-,-
-s1:	PUSH $ra,-,-
-	= @t17,-,b
-	PUSH @t17,-,-
-	JAL debug,-,-
-	POP @t18,-,-
-	POP $ra,-,-
-	= a,-,@t18
-	J s3,-,-
-s2:	= @t19,-,4
-	= a,-,@t19
-	= @t20,-,5
-	= b,-,@t20
-	J s3,-,-
-s3:	POP @t26,-,-
-	= @t26,-,f
-	POP @t27,-,-
-	= @t27,-,e
-	POP @t28,-,-
-	= @t28,-,d
-	POP @t29,-,-
-	= @t29,-,b
-	POP @t30,-,-
-	= @t30,-,a
-	POP @t31,-,-
-	JR @t31,-,-
 .DATA [debug]
-	b:	.WORD	?
 	a:	.WORD	?
+	c:	.WORD	?
 .CODE [debug]
 debug:
-	POP @t38,-,-
-	= @t39,-,b
-	PUSH @t39,-,-
-	= @t40,-,a
-	PUSH @t40,-,-
-	= a,-,@t38
-	= @t32,-,2
-	POP @t41,-,-
-	= @t41,-,a
-	POP @t42,-,-
-	= @t42,-,b
-	= b,-,@t32
-	= @t33,-,a
-	= @t34,-,b
-	= @t35,-,2
-	/ @t36,@t34,@t35
-	+ @t37,@t33,@t36
-	PUSH @t37,-,-
+	POP @t11,-,-
+	POP @t12,-,-
+	= @t13,-,a
+	PUSH @t13,-,-
+	= @t14,-,c
+	PUSH @t14,-,-
+	= c,-,@t11
+	= a,-,@t12
+	= @t0,-,c
+	= @t1,-,0
+	- @t2,@t0,@t1
+	BGTZ @t2,s2,-
+	J s1,-,-
+s2:	PUSH $ra,-,-
+	= @t3,-,a
+	+ @t5,@t3,1
+	PUSH @t5,-,-
+	= @t6,-,c
+	- @t8,@t6,1
+	PUSH @t8,-,-
+	JAL debug,-,-
+	POP @t9,-,-
+	POP $ra,-,-
+	POP @t15,-,-
+	= @t15,-,c
+	POP @t16,-,-
+	= @t16,-,a
+	= a,-,@t9
+s1:	= @t10,-,a
+	PUSH @t10,-,-
 	JR $ra,-,-
+.DATA [main]
+	b:	.WORD	?
+.CODE [main]
+main:
+	= @t24,-,b
+	PUSH @t24,-,-
+	= @t17,-,1
+	= a,-,@t17
+	PUSH $ra,-,-
+	= @t18,-,a
+	PUSH @t18,-,-
+	= @t19,-,6
+	PUSH @t19,-,-
+	JAL debug,-,-
+	POP @t20,-,-
+	POP $ra,-,-
+	= b,-,@t20
+	PUSH $ra,-,-
+	= @t21,-,b
+	PUSH @t21,-,-
+	= @t22,-,6
+	PUSH @t22,-,-
+	POP @t25,-,-
+	= @t25,-,b
+	POP @t26,-,-
+	JR @t26,-,-

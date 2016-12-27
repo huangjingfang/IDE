@@ -71,6 +71,8 @@ public class translation {
 //				System.out.println(node.actionScope+"\t"+node.morpheme+"\t"+
 //			node.name+"\t"+node.property+"\t"+node.size+"\t"+node.type);
 //			}
+		}else{
+			DataUtil.mainframe.textPane.setText("”Ô∑®∑÷Œˆ”–ŒÛ");
 		}
 	}
 	

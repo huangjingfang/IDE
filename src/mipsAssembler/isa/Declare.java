@@ -34,18 +34,18 @@ public class Declare {
 		switch (type) {
 		case DATA:
 			if(values.length==0||values[0].isEmpty()){
-				AssembleContext.dsa = AssembleContext.DEFAULT_DATA_SEG_ADDRESS;
+				AssembleContext.setDsa(AssembleContext.DEFAULT_DATA_SEG_ADDRESS);
 			}else{
-				AssembleContext.dsa = Utils.parseAddr(values[0]);
+				AssembleContext.setDsa(Utils.parseAddr(values[0]));
 			}
 			LineParse.currentSeg = false;
 			return null;
 		case TEXT:
 			if(values.length==0||values[0].isEmpty()){
-				AssembleContext.csa = AssembleContext.DEFAULT_CODE_SEG_ADDRESS;
+				AssembleContext.setCsa(AssembleContext.DEFAULT_CODE_SEG_ADDRESS);
 			}else{
 				System.out.println("values:"+values[0]);
-				AssembleContext.csa = Utils.parseAddr(values[0]);
+				AssembleContext.setCsa(Utils.parseAddr(values[0]));
 			}
 			LineParse.currentSeg = true;
 			return null;

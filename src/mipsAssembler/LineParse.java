@@ -6,10 +6,12 @@ import java.util.regex.Pattern;
 
 import javax.security.auth.DestroyFailedException;
 
+import compiler.BackEndStruct;
 import mipsAssembler.isa.Declare;
 import mipsAssembler.isa.DeclareType;
 import mipsAssembler.isa.Operation;
 import mipsAssembler.isa.Oprand;
+import mipsAssembler.isa.OprandMode;
 import mipsAssembler.isa.OprandType;
 import mipsAssembler.utils.Constants;
 import mipsAssembler.utils.Utils;
@@ -24,16 +26,14 @@ public class LineParse {
 	private static final String OPRAND_SPLITOR = "[: \t,\\(\\)]";
 	private static final String DATA_SPLITOR ="," ;
 	private static final String LABEL_IDENTIFIER = "([a-zA-Z._$][0-9a-zA-Z._$]*):";
+
 	
 	private static Matcher m_COMMENT_REGEX = Pattern.compile(COMMENT_REGEX).matcher("");
 	private static Matcher m_STATEMENT_REGEX = Pattern.compile(STATEMENT_REGEX).matcher("");
 	private static Matcher m_ELEMENT_REGEX = Pattern.compile(ELEMENT_REGEX).matcher("");
 	private static Matcher m_LABEL_IDENTIFIER = Pattern.compile(LABEL_IDENTIFIER).matcher("");
-	private static Matcher m_VARIABLE_DATAS = Pattern.compile(VARIABLE_DATAS).matcher("");
-	
-	
 
-
+	
 	//解析读入的一行代码
 	public static void parse(String line,AssembleContext context) throws Exception{
 		m_COMMENT_REGEX.reset(line);
@@ -42,7 +42,7 @@ public class LineParse {
 		}
 		if(line==null)
 			return;
-		System.out.println("Line:"+line);
+		//System.out.println("Line:"+line);
 		line =line.trim();
 		if(line.isEmpty()){
 			return;
@@ -70,10 +70,10 @@ public class LineParse {
 				String labelName = m_LABEL_IDENTIFIER.group(1);
 				if(currentSeg){//代码段
 					context.setLabel(labelName.trim());
-					System.out.println("laebl:"+label);
+					//System.out.println("laebl:"+label);
 				}else{
 					context.setVariable(labelName.trim());
-					System.out.println("vari:"+label);
+					//System.out.println("vari:"+label);
 				}
 				
 			}else{
@@ -84,11 +84,11 @@ public class LineParse {
 
 	//解析一行代码的指令部分
 	private static void parseLine(String instruction, AssembleContext context) throws Exception {
-		System.out.println("指令部分："+instruction);
+		//System.out.println("指令部分："+instruction);
 		if(instruction.trim().startsWith(".")){
 			//段的声明，数据段变量的声明
 			String data = instruction.substring(instruction.indexOf(".")+1);
-			System.out.println(data);
+			//System.out.println(data);
 			m_ELEMENT_REGEX.reset(data);
 			if(!m_ELEMENT_REGEX.matches()){
 				throw new Exception("Data declare wrong:"+data);
@@ -123,7 +123,7 @@ public class LineParse {
 		}else{
 			Declare d = new Declare(d_type, values);
 			String bin = d.getBinary();
-			System.out.println("binarys:"+bin);
+			//System.out.println("binarys:"+bin);
 			if(bin==null)
 				return;
 			String[] bins = bin.split(",");
@@ -138,24 +138,116 @@ public class LineParse {
 	
 	//57条指令的解析
 	private static void parseInstruction(String op,String oprand,AssembleContext context) throws Exception{
-		Operation operation = Operation.getOperationByName(op);
-		String[] ops = splitOprand(oprand);
-		List<Oprand> oprands = Oprand.parse(ops,operation.mode.types);
-		Instruction ins = Instruction.genInstruction(operation, oprands);
-		ins = Instruction.macro(ins,context);
-		context.binaryIns.add(ins.genBinary(context));
-		context.addrInc(Constants.BYTES_PER_INSTRUCTION);
+		String[] new_instruction = pre_process(op,oprand,context);
+		if(new_instruction[0].equals("mult-ins")){
+			String[] inss = new_instruction[1].split("\n");
+			for(String s:inss){
+				parseLine(s, context);
+			}
+		}else{
+			Operation operation = Operation.getOperationByName(new_instruction[0]);
+			String[] ops = splitOprand(new_instruction[1]);
+			List<Oprand> oprands = Oprand.parse(ops,operation.mode.types);
+			Instruction ins = Instruction.genInstruction(operation, oprands);
+			context.binaryIns.add(ins.genBinary(context));
+			//System.out.println("指令："+op+"\t"+oprand+";指令码："+Utils.Bin2Hex(ins.genBinary(context), 8));
+			context.addrInc(Constants.BYTES_PER_INSTRUCTION);
+		}
 	}
 	
-	
+	private static String[] pre_process(String op,String oprand,AssembleContext context) throws Exception{
+		//System.out.println("伪指令："+op+"\t"+oprand);
+		String[] toReturn = new String[2];
+		switch (op.trim()) {
+		case "lb":
+		case "lbu":
+		case "lh":
+		case "lhu":
+		case "lw":
+		case "sb":
+		case "sh":
+		case "sw":
+			String[] ops = splitOprand(oprand);
+			OprandType[] types = new OprandType[ops.length];
+			for(int i=0;i<ops.length;i++){
+				types[i] = OprandType.identifyOprand(ops[i]);
+			}
+			
+			if(OprandMode.isInstanceOf(types,OprandMode.I_RS_RT_OFFSET)){
+				toReturn[0] = op;
+				toReturn[1] = oprand;
+			}
+			else if(OprandMode.isInstanceOf(types,OprandMode.I_RS_RT_VARI)){
+				//将vari-offset形式的指令转化为offset-base类型的指令
+				toReturn[0] = "mult-ins";
+				String[] oprands = splitOprand(oprand);
+				long adr = context.getVariableAddress(oprands[1]);
+				long high16 = (adr&0XFFFF0000)>>16;
+				long low16 = adr&0X0000FFFF;
+				if(low16>0X00008000){
+					low16+= high16;
+				}
+				StringBuilder builder = new StringBuilder();
+				builder.append("lui").append("\t").append("$at").append(",").append(high16).append(",").append("\n");
+				builder.append("addu").append("\t").append("$at").append(",").append("$at").append(",").append(oprands[2]).append("\n");
+				builder.append(op).append("\t").append(oprands[0]).append(",").append(low16).append(",").append("$at").append("\n");
+				toReturn[1] = builder.toString();
+				//System.out.println(toReturn[1]);
+			}else throw new Exception("指令操作数有误："+op+"\t"+oprand);
+			
+			break;
+		case "push":
+			//System.out.println("栈指针位置："+context.getSp());
+			toReturn[0] = "sw";
+			toReturn[1] = oprand + ","+context.getSp()+"($sp)";
+			context.incSp(4);
+			break;
+		case "pop":
+			//System.out.println("栈指针位置："+context.getSp());
+			toReturn[0] = "lw";
+			toReturn[1] = oprand + ","+context.getSp()+"($sp)";
+			context.incSp(-4);
+			break;
+		case "adr":
+			String[] oprands = splitOprand(oprand);
+			long adr = context.getVariableAddress(oprands[1]);
+			toReturn[0] = "ori";
+			toReturn[1] = oprands[0]+",$zero,"+adr;
+			break;
+		default:
+			toReturn[0] = op;
+			toReturn[1] = oprand;
+			break;
+		}
+		//System.out.println("伪指令转换结果："+toReturn[0]+"\t"+toReturn[1]);
+		return toReturn;
+		
+	}
 	//分裂字符串
 	private static String[] splitDataSeg(String content){
 		String[] segs = content.split(DATA_SPLITOR);
+		for(int i=0;i<segs.length;i++){
+			if(segs[i].trim().equals("?"))
+				segs[i] = "0";
+		}
 		return segs;
 	}
 	private static String[] splitOprand(String content){
 		String[] oprands = content.split(OPRAND_SPLITOR);
-		return oprands;
+		int nonEmptyNum = 0;
+		for(String s:oprands){
+			if(!s.isEmpty())
+				nonEmptyNum ++;
+		}
+		String[] toReturn = new String[nonEmptyNum];
+		int count = 0;
+		for(int i=0;i<oprands.length;i++){
+			if(!oprands[i].isEmpty()){
+				toReturn[count] = oprands[i];
+				count++;
+			}else continue;
+		}
+		return toReturn;
 	}
 	
 	public static void main(String[] args) throws Exception {

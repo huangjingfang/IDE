@@ -13,12 +13,10 @@ import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class BackEndStruct {
+public class Back{
 	private static final String FUNCTION_NAME_REGEX = "\\.text\\s+\\[(\\w+)\\]";
-	private static final String DATASEG_REGEX = "\\.data\\s+\\[(\\w+)\\]";
 	
 	private static final Matcher m_FUNCTION_NAME_REGEX = Pattern.compile(FUNCTION_NAME_REGEX).matcher("");
-	private static final Matcher m_DATASEG_REGEX = Pattern.compile(DATASEG_REGEX).matcher("");
 	
 	HashMap<String, String> registerDesc;// 寄存器描述符（寄存器2临时变量）
 	HashMap<String, String> variDesc;// 变量描述符（变量2临时变量）
@@ -35,7 +33,7 @@ public class BackEndStruct {
 	public HashMap<String, VariDesc> variTable;//变量（名称和域）2变量描述
 	Random rand = new Random();
 
-	public BackEndStruct() {
+	public Back() {
 		// TODO Auto-generated constructor stub
 		// 寄存器描述符应该初始化，每个寄存器都要放入registerDesc这个map中。暂时还需要考虑的问题就是有哪些寄存器要放入这个map
 		registerDesc = new HashMap<>();
@@ -196,69 +194,38 @@ public class BackEndStruct {
 		for (String s : fs) {
 			if (s.length() == 0)
 				continue;
-			String temp = ".data" + s;
+			String temp = ".DATA" + s;
 			fragments.add(temp);
 			// System.out.println(temp);
 			// System.out.println("-----------------------------------------------------");
 		}
 		System.out.println("分段完毕");
 		// 处理每一段程序
-		StringBuilder dataSeg = new StringBuilder();
-		StringBuilder textSeg = new StringBuilder();
-		dataSeg.append(".data\n");
-		textSeg.append(".text\n");
 		for (String s : fragments) {
 			String[] parts = s.split(".CODE");
 			if (parts.length == 1) {
 				// String code = processHeader(parts[0]);
-				String[] varis = parseDataSeg(parts[0]);
-				for(String str:varis)
-					dataSeg.append("\t").append(str).append("\n");
+				writer.append(parts[0]);
 			} else {
 				// String header = processHeader(parts[0]);
-				String[] varis = parseDataSeg(parts[0]);
-				for(String str:varis)
-					dataSeg.append("\t").append(str).append("\n");
 				String code = processBody(".text" + parts[1]);
-				textSeg.append(code);
+				writer.append(parts[0]);
+				writer.append(code);
 			}
 		}
-		writer.append(dataSeg);
-		writer.append(textSeg);
 		reader.close();
 		writer.close();
 		System.out.println("指令代码生成结束");
 	}
-	private String[] parseDataSeg(String dataseg) throws Exception{
-		String[] decs = dataseg.split("\n");
-		String[] toReturn = new String[decs.length-1];
-		String funName;
-		m_DATASEG_REGEX.reset(decs[0]);
-		if(m_DATASEG_REGEX.matches()){
-			funName = m_DATASEG_REGEX.group(1)+"_";
-		}else{
-			funName = "Global_";
-		}
-		for(int i=1;i<decs.length;i++){
-			String[] var_val = decs[i].trim().split("\\s+");
-			StringBuilder temp = new StringBuilder();
-			temp.append(funName);
-			for(String str:var_val)
-				temp.append(str).append("\t");
-			toReturn[i-1] = temp.toString().trim();
-		}
-		return toReturn;
-	}
 
 	private String processBody(String body) throws Exception {
 		String[] lexs = body.split("\n");
-		String funName;
 		StringBuilder toReturn = new StringBuilder();
 		// 处理.Code [FNAME] 和函数名
-		//toReturn.append(lexs[0] + "\n");
-		m_FUNCTION_NAME_REGEX.reset(lexs[0].trim());
+		toReturn.append(lexs[0] + "\n");
+		m_FUNCTION_NAME_REGEX.reset(lexs[0]);
 		if(m_FUNCTION_NAME_REGEX.matches()){
-			funName = m_FUNCTION_NAME_REGEX.group(1);	
+			String funName = m_FUNCTION_NAME_REGEX.group(1);	
 			toReturn.append(funName + ":\n");
 			func2index.put(funName, currentIndex);
 		}else{
@@ -273,14 +240,8 @@ public class BackEndStruct {
 				String[] split = devide[0].split(" ");
 				String operator = split[0];
 				String args[] = split[1].split(",");
-				if(operator.trim().equals("=")){
-					for(int j=0;j<args.length;j++){
-						if(args[j].trim().matches("[a-zA-Z]\\w*"))
-							args[j] = funName+"_"+args[j];
-					}
-				}
 				Quaternary q = new Quaternary(operator, args[1], args[2], args[0]);
-				//System.out.println("变换变量后的四元式值："+q.op + "\t" + q.arg0 + "\t" + q.arg1 + "\t" + q.result);
+				//System.out.println(q.op + "\t" + q.arg0 + "\t" + q.arg1 + "\t" + q.result);
 				String code = genCode(q);
 				//System.out.println(code);
 				toReturn.append(code);
@@ -292,12 +253,6 @@ public class BackEndStruct {
 				String[] split = devide[1].split(" ");
 				String operator = split[0];
 				String args[] = split[1].split(",");
-				if(operator.trim().equals("=")){
-					for(int j=0;j<args.length;j++){
-						if(args[j].trim().matches("[a-zA-Z]\\w*"))
-							args[j] = funName+"_"+args[j];
-					}
-				}
 				Quaternary q = new Quaternary(operator, args[1], args[2], args[0]);
 				//System.out.println(q.op + "\t" + q.arg0 + "\t" + q.arg1 + "\t" + q.result);
 				String code = genCode(q);
@@ -319,13 +274,9 @@ public class BackEndStruct {
 	 */
 	private String pre_process(String[] addr, String[] qValues) {
 		StringBuilder builder = new StringBuilder();
-		System.out.println();
 		for(int i=0;i<addr.length;i++){
 			registerDesc.put(addr[i], qValues[i]);
-			System.out.print(addr[i]+":"+qValues[i]+"\t\t\t");
-			
 		}
-		System.out.println();
 //		for (int i = 0; i < addr.length; i++) {
 //			//寄存器中的变量就是该临时变量的值或为空。
 //			if(registerDesc.get(addr[i])==null||registerDesc.get(addr[i]).equals(qValues[i])){
@@ -359,11 +310,16 @@ public class BackEndStruct {
 		String[] qValues;
 		StringBuilder builder = new StringBuilder();
 		System.out.println("四元式："+q.op.trim()+" "+q.result+","+q.arg0+","+q.arg1);
+		Iterator<String> it = registerDesc.keySet().iterator();
+		while(it.hasNext()){
+			String key = it.next();
+			System.out.print(key+":"+registerDesc.get(key)+"\t");
+		}
 		switch (q.op.trim()) {
 		case "+":
 			if (q.arg1.matches("(\\d)+")) {
 				// 立即数加，arg1为立即数，arg0为变量或寄存器名，result为寄存器名
-				//System.out.println(getKey(variDesc, q.arg0)+variTable.get(getKey(variDesc, q.arg0)));
+				System.out.println(getKey(variDesc, q.arg0)+variTable.get(getKey(variDesc, q.arg0)));
 				if (variTable.get(getKey(variDesc, q.arg0)).type.equalsIgnoreCase("unsigned")) {
 					// 无符号数加
 					addr = getReg(q.arg0, q.result);
@@ -469,7 +425,7 @@ public class BackEndStruct {
 						(registerDesc.get(addr[0]) != null)|(!registerDesc.get(addr[0]).equals(q.result))) {
 					// 将原变量转出到内存
 					String var = getKey(variDesc, registerDesc.get(addr[0]));
-					//builder.append("\tsw "+ addr[0]+","+var+"\n");
+					builder.append("\tsw "+ addr[0]+","+var+"\n");
 				}
 				//builder.append(pre_process(addr, new String[]{q.result}));
 				builder.append("\t" + "ori " + addr[0] +",$zero," + q.arg1 + "\n");
@@ -480,7 +436,7 @@ public class BackEndStruct {
 				addr = getReg(q.arg1);
 				//System.out.println(q.arg1+"得到的寄存器为"+addr[0]);
 				//System.out.println(addr[0]);
-				builder.append("\tsw "+addr[0]+ ","+q.result+ " ($zero)\n");
+				builder.append("\tsw "+addr[0]+ ","+q.result+ "\n");
 				variDesc.put(q.result, q.arg1);
 				registerDesc.put(addr[0],q.arg1);
 				System.out.println(q.result+":\t"+q.arg1);
@@ -501,7 +457,7 @@ public class BackEndStruct {
 					registerDesc.put(addr[0], q.result);
 					variDesc.put(q.arg1, q.result);
 					builder.append(pre_process(addr, new String[]{q.result}));
-					builder.append("\tlw "+addr[0]+","+q.arg1+ " ($zero)\n");
+					builder.append("\tlw "+addr[0]+","+q.arg1+ "\n");
 				}else{
 					variDesc.put(q.arg1, q.result);
 					registerDesc.put(varAddr, q.result);
@@ -665,8 +621,6 @@ public class BackEndStruct {
 				builder.append("\tpop $ra\n");
 			}else{
 				addr = getReg(q.result);
-				qValues = new String[]{q.result};
-				pre_process(addr, qValues);
 				builder.append("\tpop "+addr[0]+"\n");
 			}
 			break;
@@ -675,8 +629,6 @@ public class BackEndStruct {
 				builder.append("\tpush $ra\n");
 			}else{
 				addr = getReg(q.result);
-				qValues = new String[]{q.result};
-				pre_process(addr, qValues);
 				builder.append("\tpush "+addr[0]+"\n");
 			}
 			break;
@@ -687,10 +639,7 @@ public class BackEndStruct {
 			builder.append("\tjal "+q.result+ "\n");
 			break;
 		case "JR":
-			addr = getReg(q.result);
-			qValues = new String[]{q.result};
-			pre_process(addr, qValues);
-			builder.append("\tjr "+addr[0]+ "\n");
+			builder.append("\tjr "+q.result+ "\n");
 			break;
 		// 其他指令
 
@@ -705,7 +654,7 @@ public class BackEndStruct {
 		lex = l;
 		variTable = new HashMap<>();
 		for (sNode node : l.VariSignary) {
-			variTable.put(node.actionScope+"_"+node.name, new VariDesc(node));
+			variTable.put(node.name, new VariDesc(node));
 			System.out.println(node.actionScope+"\t"+node.morpheme+"\t"+
 					node.name+"\t"+node.property+"\t"+node.size+"\t"+node.type);
 		}

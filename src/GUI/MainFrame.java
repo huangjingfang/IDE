@@ -110,21 +110,6 @@ public class MainFrame extends JFrame implements ActionListener {
 		RTextScrollPane content = createContentPane(SyntaxConstants.SYNTAX_STYLE_NONE);
 		pathDic.put(content, null);
 		tb.addTab("New tab", null, content, null);
-
-//		JMenuBar menuBar_1 = new JMenuBar();
-//		menuBar_1.setLayout(new GridLayout(0, 5));
-//		//getContentPane().add(menuBar_1, BorderLayout.SOUTH);
-//
-//		search = new JTextField();
-//		search.setHorizontalAlignment(SwingConstants.LEFT);
-//		menuBar_1.add(search);
-//		search.setColumns(10);
-//		
-//		JButton search_btn = new JButton("搜索");
-//		menuBar_1.add(search_btn);
-//		
-//		status = new JLabel("状态:");
-//		menuBar_1.add(status);
 		
 		textPane = new JTextPane();
 		textPane.setForeground(Color.RED);
@@ -215,6 +200,7 @@ public class MainFrame extends JFrame implements ActionListener {
 					String text = contentlist.get(tb.getSelectedIndex()).getTextArea().getText();
 					String[] lexs = DataUtil.divide(text);
 					for(int i=0;i<lexs.length;i++){
+						//System.out.println(lexs[i]);
 						if(lexs[i].trim().equals("+")){
 							if(lexs[i-1].trim().matches("(\\d)+")){
 								String temp = lexs[i-1];
@@ -240,17 +226,18 @@ public class MainFrame extends JFrame implements ActionListener {
 						break;
 					default:
 						textPane.setText("状态：编译成功\n\n\n");
+						try {
+							BackEndStruct bct = new BackEndStruct();
+							bct.setLex(tr.getLex());
+							System.out.println("is variTable in bct null?"+ (bct.variTable==null));
+							bct.genCode("IntermediateCode.data", "instructions.data");
+						} catch (Exception e) {
+							// TODO Auto-generated catch block
+							textPane.setText(e.getMessage());
+						}
 						break;
 					}
-					try {
-						BackEndStruct bct = new BackEndStruct();
-						bct.setLex(tr.getLex());
-						System.out.println("is variTable in bct null?"+ (bct.variTable==null));
-						bct.genCode("IntermediateCode.data", "instructions.data");
-					} catch (Exception e) {
-						// TODO Auto-generated catch block
-						textPane.setText(e.getMessage());
-					}
+					
 				}
 			});
 			
@@ -258,22 +245,30 @@ public class MainFrame extends JFrame implements ActionListener {
 		case "汇编(MIPS)":
 			//String text = contentlist.get(tb.getSelectedIndex()).getTextArea().getText();
 			//String[] lines = text.split("\n");
-			File current = new File(pathDic.get(contentlist.get(tb.getSelectedIndex()))); 
-			if(!current.exists()){
-				JOptionPane.showMessageDialog(this, "请先保存文件");
+			String filename = tb.getTitleAt(tb.getSelectedIndex());
+			System.out.println(filename);
+			String postfix = filename.substring(filename.lastIndexOf(".")+1,filename.length());
+			if(postfix.equals("mips")||postfix.equals("MIPS")){
+				File current = new File(pathDic.get(contentlist.get(tb.getSelectedIndex()))); 
+				if(!current.exists()){
+					JOptionPane.showMessageDialog(this, "请先保存文件");
+				}else{
+					try {
+						InputStream ins = new FileInputStream(current);
+						AssembleContext content = AssembleContext.parseContext(ins);
+						content.Parse();
+						ins.close();
+						textPane.setText("汇编成功\n\n\n");
+					} catch (Exception e1) {
+						// TODO Auto-generated catch block
+						textPane.setText(e1.toString()+"\n\n\n");
+						e1.printStackTrace();
+					}	
+				}
 			}else{
-				try {
-					InputStream ins = new FileInputStream(current);
-					AssembleContext content = AssembleContext.parseContext(ins);
-					content.Parse();
-					ins.close();
-					textPane.setText("汇编成功\n\n\n");
-				} catch (Exception e1) {
-					// TODO Auto-generated catch block
-					textPane.setText(e1.toString()+"\n\n\n");
-					e1.printStackTrace();
-				}	
+				JOptionPane.showMessageDialog(MainFrame.this, "该文件不是.mips文件,无法进行汇编");
 			}
+			
 			
 			break;
 		case "关闭":

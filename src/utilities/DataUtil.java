@@ -11,6 +11,7 @@ import javax.swing.text.StyleConstants;
 import javax.swing.text.StyleConstants.FontConstants;
 
 import GUI.MainFrame;
+import compiler.BackEndStruct;
 
 public class DataUtil {
 	public static int fontSize = 14;// ×ÖÌå´óÐ¡
@@ -193,9 +194,9 @@ public class DataUtil {
 		str = str.replaceAll("\\s\\)(\\s)*", "\\)");
 		str = str.replaceAll("\\s\\[(\\s)*", "\\[");
 		str = str.replaceAll("\\s\\](\\s)*", "\\]");
-		String nonWord = "(;|\\(|\\)|\\{|\\}|=|!=|\\+|-|\\*|/|%|>|<|\\[|\\]|\\$|~|&|\\|)";
+		String nonWord = "(;|\\(|\\)|\\{|\\}|=|!=|\\+|-|\\*|/|%|>|<|\\[|\\]|\\$|~|&|,|\\|)";
 		//System.out.println(str);
-		String regexpr = "(\\s)*(\\w)+(\\s|;|\\(|\\)|\\{|\\}|=|!=|\\+|-|\\*|/|%|>|<|\\[|\\]|\\$|~|&|\\|)";
+		String regexpr = "(\\s)*(\\w)+(\\s|;|\\(|\\)|\\{|\\}|=|!=|\\+|-|\\*|/|%|>|<|\\[|\\]|\\$|~|&|,|\\|)";
 		String insideregex = "(\\w)+(\\s)";
 		String doubleop = "(\\w)+(!=)";
 		for (int i = 0; i <= str.length(); i++) {
@@ -227,6 +228,7 @@ public class DataUtil {
 				i = 0;
 			}
 		}
+
 		String[] result = new String[res.size()];
 		int offset = 0;
 		for (int i = 0; i < res.size(); i++) {
@@ -243,6 +245,8 @@ public class DataUtil {
 					result[i - offset] = "<<";
 					offset++;
 					i++;
+				}else{
+					result[i-offset] = "<";
 				}
 				
 			}else if(i < res.size() - 1 && res.get(i).equals(">")){
@@ -254,6 +258,8 @@ public class DataUtil {
 					result[i - offset] = ">>";
 					offset++;
 					i++;
+				}else{
+					result[i-offset] = ">";
 				}
 				
 			}else
@@ -262,6 +268,7 @@ public class DataUtil {
 		String[] updateRes = new String[res.size() - offset];
 		for (int i = 0; i < updateRes.length; i++) {
 			updateRes[i] = result[i];
+			//System.out.println(updateRes[i]);
 		}
 		return updateRes;
 	}

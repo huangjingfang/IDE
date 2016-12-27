@@ -18,6 +18,10 @@ public class Instruction {
 		this.oprands = oprands;
 	}
 	
+	private Instruction() {
+		// TODO Auto-generated constructor stub
+	}
+
 	public static Instruction genInstruction(Operation operation,List<Oprand> oprands) throws Exception{
 		return new Instruction(operation, oprands);
 		
@@ -138,7 +142,7 @@ public class Instruction {
 		case "bltzal":
 			type_I = (InsType_I)op.type;
 			builder.append(type_I.getOp()).append(oprands.get(0).genBinary(5,context))
-				.append(type_I.getRt()).append(oprands.get(2).genBinary(16,context));
+				.append(type_I.getRt()).append(oprands.get(1).genBinary(16,context));
 			break;
 		case "slti":
 		case "sltiu":
@@ -149,7 +153,8 @@ public class Instruction {
 		case "j":
 		case "jal":
 			type_J = (InsType_J)op.type;
-			builder.append(type_J.getOp()).append(oprands.get(0).genBinary(26,context));
+			builder.append(type_J.getOp()).append(oprands.get(0).genBinary(26,context));			
+			break;
 		default:
 			break;
 		}
@@ -157,17 +162,19 @@ public class Instruction {
 	}
 	
 	
-	public static Instruction macro(Instruction instruction,AssembleContext context){
-		if(instruction.op==Operation.ORI){
-			List<Oprand> ops = instruction.oprands;
-			String vari_name = ops.get(2).getName();
-			if(vari_name.matches(VARI_REGEX)){
-				Long addr = context.getVariableAddress(vari_name);
-				ops.get(2).setName(addr+"");
-			}
-		}
-		return instruction;
-	}
+//	public static Instruction macro(Instruction instruction,AssembleContext context){
+//		if(instruction.op==Operation.ORI){
+//			List<Oprand> ops = instruction.oprands;
+//			String vari_name = ops.get(2).getName();
+//			if(vari_name.matches(VARI_REGEX)){
+//				Long addr = context.getVariableAddress(vari_name);
+//				ops.get(2).setName(addr+"");
+//			}
+//		}
+//		return instruction;
+//	}
+
+	
 	
 	
 }

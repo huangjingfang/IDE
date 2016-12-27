@@ -16,21 +16,26 @@ import mipsAssembler.utils.Utils;
 
 public class AssembleContext {
 	public static final long DEFAULT_DATA_SEG_ADDRESS = 0X00000000;
-	public static final long DEFAULT_CODE_SEG_ADDRESS = 0X80000000;
+	public static final long DEFAULT_CODE_SEG_ADDRESS = 0X00010000;
 	
-	public static long dsa;
-	public static long csa;
+	private static long dsa;
+	private static long csa;
 	private HashMap<String, Long> label2Addr;
 	private HashMap<String, Long> vari2Addr;
 	public ArrayList<String> binaryData;
 	public ArrayList<String> binaryIns;
-	private String currentLabel;
+	private long stackPoint;
+	private int codeSegLength;
+	private int dataSegLength;
 
 	public AssembleContext() {
 		label2Addr = new HashMap<>();
 		binaryData = new ArrayList<>();
 		binaryIns = new ArrayList<>();
 		vari2Addr = new HashMap<>();
+		stackPoint = 0X00000000;
+		codeSegLength = 0;
+		dataSegLength = 0;
 	}
 
 	public static AssembleContext parseContext(InputStream ins) throws Exception {
@@ -100,7 +105,41 @@ public class AssembleContext {
 		}
 		writer.close();
 	}
+	
+	private void pre_parse(){
+		Iterator<String> it = label2Addr.keySet().iterator();
+		while(it.hasNext()){
+			String key = it.next();
+			long codeAddr = csa-codeSegLength;
+			for(int i=0;i<binaryIns.size();i++){
+				//System.out.print("原指令码："+binaryIns.get(i)+"\tkey:"+key);
+				if(binaryIns.get(i).contains(key.trim())){
+					//System.out.print(";包含标签："+key+"\t标签地址："+label2Addr.get(key));
+					if(binaryIns.get(i).startsWith("000010")||binaryIns.get(i).startsWith("000011")){
+						//j和jal
+						//System.out.println("J型指令");
+						String labelAddrB = Long.toBinaryString(label2Addr.get(key));
+						binaryIns.set(i, binaryIns.get(i).replace(key,Utils.format(labelAddrB, 26) ));
+					}else{
+						//offset
+						//System.out.println("I型指令");
+						long labelAddr = label2Addr.get(key);
+						long offset = codeAddr-labelAddr;
+						String offsetB = Long.toBinaryString(offset);
+						System.out.println("偏移值："+offset);
+						if(offsetB.length()==64)
+							offsetB = offsetB.substring(48, 64);
+						//binaryIns.set(i, binaryIns.get(i).replace(key, Utils.format(offsetB, 16)));
+						binaryIns.set(i, binaryIns.get(i).replace(key, offsetB));
+					}
+				}
+				//System.out.println("\t更新指令码："+binaryIns.get(i));
+				codeAddr+=Constants.BYTES_PER_INSTRUCTION;
+			}
+		}
+	}
 	public void Parse() throws Exception{
+		pre_parse();
 		PrintWriter writer_Ins = new PrintWriter("outInstruction.coe");
 		PrintWriter writer_Data = new PrintWriter("outData.coe");
 		writer_Ins.write("memory_initialization_radix=16;\n");
@@ -145,9 +184,11 @@ public class AssembleContext {
 	
 	public void addrInc(int length){
 		csa+=length;
+		codeSegLength+=length;
 	}
 	public void dataInc(int length){
 		dsa+=length;
+		dataSegLength+=length;
 	}
 
 	public long getLabelAddress(String name) {
@@ -155,7 +196,7 @@ public class AssembleContext {
 		return label2Addr.get(name);
 	}
 
-	public long getVariableAddress(String name) {
+	public long getVariableAddress(String name) throws Exception {
 		// TODO Auto-generated method stub
 		System.out.println("Variable Name:"+name);
 		Iterator<String> it = vari2Addr.keySet().iterator();
@@ -163,7 +204,26 @@ public class AssembleContext {
 			String key = it.next();
 			System.out.println(key+":"+vari2Addr.get(key));
 		}
+		if(vari2Addr.get(name)==null){
+			String global = "Global"+name.substring(name.indexOf("_"));
+			System.out.println(global+vari2Addr.get(global));
+			if(vari2Addr.get(global)!=null){
+				return vari2Addr.get(global);
+			}else throw new Exception("不存在变量："+name+"或者"+global);
+		}
 		return vari2Addr.get(name);
 	}
 
+	public long getSp(){
+		return stackPoint;
+	}
+	public void incSp(long inscrement){
+		stackPoint+=inscrement;
+	}
+	public static void setDsa(long dataseg){
+		dsa = dataseg;
+	}
+	public static void setCsa(long codeseg){
+		csa = codeseg;
+	}
 }

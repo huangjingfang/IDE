@@ -1,6 +1,12 @@
 package mipsAssembler.utils;
 
 public class Utils {
+	/**
+	 * 将字符串二进制码格式化为规定长度
+	 * @param str
+	 * @param length
+	 * @return
+	 */
 	public static String format(String str, int length) {
 		int cur_len = str.length();
 		StringBuilder b = new StringBuilder();
@@ -10,15 +16,27 @@ public class Utils {
 		return b.append(str).toString();
 	}
 
-	public static String format(int num, int length) {
+	/**
+	 * 将long类型的十进制数格式化为指定长度的二进制码
+	 * @param num
+	 * @param length
+	 * @return
+	 */
+	public static String format(long num, int length) {
 		StringBuilder b = new StringBuilder();
-		String cur = Integer.toBinaryString(num);
+		String cur = Long.toBinaryString(num);
 		for (int i = cur.length(); i < length; i++) {
 			b.append("0");
 		}
 		return b.append(cur).toString();
 	}
 
+	/**
+	 * 将二进制的字符串格式化为十六进制的字符串
+	 * @param bin
+	 * @param length
+	 * @return
+	 */
 	public static String Bin2Hex(String bin, int length) {
 		long d = 0;
 		for (int i = bin.length() - 1; i >= 0; i--) {
@@ -31,7 +49,13 @@ public class Utils {
 	}
 
 
-
+	/**
+	 * 将地址描述字符串转换为十进制数
+	 * @param addr
+	 * @return
+	 * @throws Exception
+	 */
+	
 	public static long parseAddr(String addr) throws Exception {
 		if (addr.startsWith("0x") | addr.startsWith("0X")) {
 			String value = addr.substring(2);

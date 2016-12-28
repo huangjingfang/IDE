@@ -26,7 +26,7 @@ public class semanticAnalysis
 		
 	}
 	
-	public Vector<String> Analysis(String []code,Vector<Integer> action,String []lex)
+	public Vector<String> Analysis(String []code,Vector<Integer> action,String []lex) throws Exception
 	{
 		int index = 0;
 		for(int i = 0 ; i < action.size() ; i++)
@@ -48,7 +48,7 @@ public class semanticAnalysis
 		return ((attributeDefinition)nonter.pop()).code;
 	}
 	
-	public void regulation(int Serial)
+	public void regulation(int Serial) throws Exception
 	{
 		switch(Serial)
 		{

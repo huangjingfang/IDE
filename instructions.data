@@ -1,54 +1,34 @@
 .data
-	Global_a:	.WORD	?
-	debug_a:	.WORD	?
-	debug_c:	.WORD	?
+	main_a:	.WORD	?
 	main_b:	.WORD	?
+	main_c:	.WORD	?
 .text
-debug:
-	pop $t0
-	pop $t1
-	lw $t2,debug_a ($zero)
-	push $t2
-	lw $t3,debug_c ($zero)
-	push $t3
-	sw $t0,debug_c ($zero)
-	sw $t1,debug_a ($zero)
-	ori $t4,$zero,0
-	sub $t6,$t0,$t4
-	bgtz $t6,s2
-	j s1
-s2:	push $ra
-	addi $t8,$t1,1
-	push $t8
-	sub $t2,$t0,$t9
-	push $t2
-	jal debug
-	pop $t0
-	pop $ra
-	pop $t1
-	lw $t1,debug_c ($zero)
-	pop $t2
-	lw $t2,debug_a ($zero)
-	sw $t0,debug_a ($zero)
-s1:	push $t0
-	jr $t3
+start:
+	ori	$sp,$zero,36863
+	jal	main
 main:
-	lw $t4,main_b ($zero)
-	push $t4
-	ori $t5,$zero,1
-	sw $t5,main_a ($zero)
-	push $ra
-	push $t5
-	ori $t6,$zero,6
-	push $t6
-	jal debug
-	pop $t7
-	pop $ra
-	sw $t7,main_b ($zero)
-	push $ra
-	push $t7
-	ori $t8,$zero,6
-	push $t8
-	pop $t9
-	pop $t0
-	jr $t0
+	lw $t0,main_a ($zero)
+	push $t0
+	lw $t1,main_b ($zero)
+	push $t1
+	lw $t2,main_c ($zero)
+	push $t2
+	ori $t3,$zero,4
+	sw $t3,main_a ($zero)
+	ori $t4,$zero,3
+	sw $t4,main_b ($zero)
+	sub $t6,$t3,$t4
+	bgtz $t6,s1
+	j s2
+s1:	addi $t8,$t3,5
+	sw $t8,main_c ($zero)
+	j s3
+s2:	addi $t9,$t4,5
+	sw $t9,main_c ($zero)
+	j s3
+s3:	pop $t9
+	lw $t9,main_c ($zero)
+	pop $s0
+	pop $s1
+	pop $s2
+	jr $s2

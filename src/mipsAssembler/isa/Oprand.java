@@ -153,7 +153,7 @@ public class Oprand {
 				}
 			}
 		case IMMEDIATE:
-			if(!name.matches("\\d+")){
+			if(!name.matches("-?\\d+")){
 				throw new Exception("Invalid Number:"+name);
 			}else {
 				String temp = Integer.toBinaryString(Integer.parseInt(name));
@@ -164,7 +164,7 @@ public class Oprand {
 				}
 			}
 		case OFFSET:
-			if(!name.matches("\\d+")){
+			if(!name.matches("-?\\d+")){
 				throw new Exception("Invalid Number:"+name);
 			}else{
 				String temp = Integer.toBinaryString(Integer.parseInt(name));

@@ -1,6 +1,7 @@
 package mipsAssembler;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -13,10 +14,11 @@ import java.util.Iterator;
 
 import mipsAssembler.utils.Constants;
 import mipsAssembler.utils.Utils;
+import utilities.DataUtil;
 
 public class AssembleContext {
 	public static final long DEFAULT_DATA_SEG_ADDRESS = 0X00000000;
-	public static final long DEFAULT_CODE_SEG_ADDRESS = 0X00010000;
+	public static final long DEFAULT_CODE_SEG_ADDRESS = 0X00000000;
 	
 	private static long dsa;
 	private static long csa;
@@ -84,27 +86,27 @@ public class AssembleContext {
 //		csa += bytes;
 //		binaryIns.add(bits);
 //	}
-	
-	public void Parse(String[] content) throws Exception{
-		PrintWriter writer = new PrintWriter("outInstruction.coe");
-		for(String s:content){
-			LineParse.parse(s, this);
-		}
-		int count = 1;
-		for(String s:binaryIns){
-			String hex = Utils.Bin2Hex(s, s.length()/Constants.BYTES_PER_WORD).toUpperCase();
-			System.out.println(hex);
-			if(count%8 == 0){
-				writer.write(hex);
-				writer.write(",\n");
-			}else{
-				writer.write(hex);
-				writer.write(",");
-			}
-			
-		}
-		writer.close();
-	}
+//	
+//	public void Parse(String[] content) throws Exception{
+//		PrintWriter writer = new PrintWriter("outInstruction.coe");
+//		for(String s:content){
+//			LineParse.parse(s, this);
+//		}
+//		int count = 1;
+//		for(String s:binaryIns){
+//			String hex = Utils.Bin2Hex(s, s.length()/Constants.BYTES_PER_WORD).toUpperCase();
+//			System.out.println(hex);
+//			if(count%8 == 0){
+//				writer.write(hex);
+//				writer.write(",\n");
+//			}else{
+//				writer.write(hex);
+//				writer.write(",");
+//			}
+//			
+//		}
+//		writer.close();
+//	}
 	
 	private void pre_parse(){
 		Iterator<String> it = label2Addr.keySet().iterator();
@@ -119,16 +121,19 @@ public class AssembleContext {
 						//j和jal
 						//System.out.println("J型指令");
 						String labelAddrB = Long.toBinaryString(label2Addr.get(key));
+						System.out.println("J型指令：当前指令地址 :"+codeAddr+";标签"+key+"地址:"+label2Addr.get(key));
 						binaryIns.set(i, binaryIns.get(i).replace(key,Utils.format(labelAddrB, 26) ));
 					}else{
 						//offset
 						//System.out.println("I型指令");
 						long labelAddr = label2Addr.get(key);
-						long offset = codeAddr-labelAddr;
+						System.out.println("R型指令：当前指令地址 :"+codeAddr+";标签"+key+"地址:"+labelAddr);
+						long offset = labelAddr-codeAddr;
 						String offsetB = Long.toBinaryString(offset);
 						System.out.println("偏移值："+offset);
 						if(offsetB.length()==64)
 							offsetB = offsetB.substring(48, 64);
+						else offsetB = Utils.format(offsetB, 16);
 						//binaryIns.set(i, binaryIns.get(i).replace(key, Utils.format(offsetB, 16)));
 						binaryIns.set(i, binaryIns.get(i).replace(key, offsetB));
 					}
@@ -137,11 +142,15 @@ public class AssembleContext {
 				codeAddr+=Constants.BYTES_PER_INSTRUCTION;
 			}
 		}
+		
+		for(String s:binaryIns){
+			System.out.println(s);
+		}
 	}
 	public void Parse() throws Exception{
 		pre_parse();
-		PrintWriter writer_Ins = new PrintWriter("outInstruction.coe");
-		PrintWriter writer_Data = new PrintWriter("outData.coe");
+		PrintWriter writer_Ins = new PrintWriter(new File(DataUtil.currentFileName.replace(".mips", "ins.coe")));
+		PrintWriter writer_Data = new PrintWriter(new File(DataUtil.currentFileName.replace(".mips", "data.coe")));
 		writer_Ins.write("memory_initialization_radix=16;\n");
 		writer_Ins.write("memory_initialization_vector=\n");
 		for(int i=0;i<binaryIns.size();i++){

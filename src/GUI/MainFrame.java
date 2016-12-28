@@ -96,8 +96,7 @@ public class MainFrame extends JFrame implements ActionListener {
 				new JMenuItem("Áí´æÎª"), new JMenuItem("ËÑË÷"), new JMenuItem("¹Ø±Õ"), new JMenuItem("ÉèÖÃ"),
 				new JMenuItem("ÍË³ö") };
 		editItems = new JMenuItem[] { new JMenuItem("¸´ÖÆ"), new JMenuItem("Õ³Ìù"), new JMenuItem("³·Ïú") };
-		compileItems = new JMenuItem[] { new JMenuItem("±àÒë"), new JMenuItem("»ã±à(MIPS)"), new JMenuItem("Ìí¼ÓÎÄ·¨"),
-				new JMenuItem("make") };
+		compileItems = new JMenuItem[] { new JMenuItem("±àÒë"), new JMenuItem("»ã±à(MIPS)")};
 		helpItems = new JMenuItem[] { new JMenuItem("¹ØÓÚ") };
 		chooser = new JFileChooser();
 		setAccelerator();
@@ -192,12 +191,19 @@ public class MainFrame extends JFrame implements ActionListener {
 			System.exit(0);
 			break;
 		case "±àÒë":
+			if(pathDic.get(contentlist.get(tb.getSelectedIndex()))==null){
+				JOptionPane.showMessageDialog(this, "ÇëÏÈ±£´æÎÄ¼ş£¡");
+				break;
+			}else{
+				DataUtil.currentFileName = pathDic.get(contentlist.get(tb.getSelectedIndex()));
+			}
+			
 			SwingUtilities.invokeLater(new Runnable() {
 				
 				@Override
 				public void run() {
 					// TODO Auto-generated method stub
-					String text = contentlist.get(tb.getSelectedIndex()).getTextArea().getText();
+					String text = contentlist.get(tb.getSelectedIndex()).getTextArea().getText().trim();
 					String[] lexs = DataUtil.divide(text);
 					for(int i=0;i<lexs.length;i++){
 						//System.out.println(lexs[i]);
@@ -212,37 +218,47 @@ public class MainFrame extends JFrame implements ActionListener {
 //					for(String st:lexs){
 //						System.out.println(st);
 //					}
-					tr = new translation(lexs);
-					int tips = tr.getTips();
-					switch (tips) {
-					case 0:
-						textPane.setText("×´Ì¬£º´Ê·¨·ÖÎö´íÎó\n\n\n");
-						break;
-					case 1:
-						textPane.setText("×´Ì¬£ºÓï·¨·ÖÎö´íÎó´íÎó\n\n\n");
-						break;
-					case 2:
-						textPane.setText("×´Ì¬£ºÓïÒå·ÖÎö´íÎó´íÎó\n\n\n");
-						break;
-					default:
-						textPane.setText("×´Ì¬£º±àÒë³É¹¦\n\n\n");
-						try {
+					try {
+						tr = new translation(lexs);
+						int tips = tr.getTips();
+						switch (tips) {
+						case 0:
+							textPane.setText("×´Ì¬£º´Ê·¨·ÖÎö´íÎó\n\n\n");
+							break;
+						case 1:
+							textPane.setText("×´Ì¬£ºÓï·¨·ÖÎö´íÎó\n\n\n");
+							break;
+						case 2:
+							textPane.setText("×´Ì¬£ºÓïÒå·ÖÎö´íÎó\n\n\n");
+							break;
+						default:
+							textPane.setText("×´Ì¬£º±àÒë³É¹¦\n\n\n");
+							
 							BackEndStruct bct = new BackEndStruct();
 							bct.setLex(tr.getLex());
 							System.out.println("is variTable in bct null?"+ (bct.variTable==null));
-							bct.genCode("IntermediateCode.data", "instructions.data");
-						} catch (Exception e) {
-							// TODO Auto-generated catch block
-							textPane.setText(e.getMessage());
+							new File(DataUtil.currentFileName.replace(".c", ".mips"));
+							bct.genCode("IntermediateCode.data", DataUtil.currentFileName.replace(".c", ".mips"));
+							break;
 						}
-						break;
+					} catch (Exception e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+						textPane.setText(e1.getMessage()+"\n\n\n");
 					}
+					
 					
 				}
 			});
 			
 			break;
 		case "»ã±à(MIPS)":
+			if(pathDic.get(contentlist.get(tb.getSelectedIndex()))==null){
+				JOptionPane.showMessageDialog(this, "ÇëÏÈ±£´æÎÄ¼ş£¡");
+				break;
+			}else{
+				DataUtil.currentFileName = pathDic.get(contentlist.get(tb.getSelectedIndex()));
+			}
 			//String text = contentlist.get(tb.getSelectedIndex()).getTextArea().getText();
 			//String[] lines = text.split("\n");
 			String filename = tb.getTitleAt(tb.getSelectedIndex());
@@ -261,7 +277,7 @@ public class MainFrame extends JFrame implements ActionListener {
 						textPane.setText("»ã±à³É¹¦\n\n\n");
 					} catch (Exception e1) {
 						// TODO Auto-generated catch block
-						textPane.setText(e1.toString()+"\n\n\n");
+						textPane.setText(e1.getMessage()+"\n\n\n");
 						e1.printStackTrace();
 					}	
 				}

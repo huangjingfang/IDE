@@ -1,5 +1,6 @@
 package compiler;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Vector;
@@ -13,7 +14,7 @@ public class translation {
 	myYacc my;
 	myLex ml;
 	int tips = 0;
-	public translation(String []code)
+	public translation(String []code) throws Exception
 	{
 		my = new myYacc();
 		ml = new myLex();
@@ -79,7 +80,7 @@ public class translation {
 	public void printResult(Vector<String> temp)
 	{
 		try {
-			FileWriter fileWriter = new FileWriter("IntermediateCode.data");
+			FileWriter fileWriter = new FileWriter(new File(DataUtil.currentFileName.replace(".c", ".temp")));
 			for(int i = 0 ; i < temp.size() ; i++)
 			{
 				if(temp.get(i).equals(".DATA") || temp.get(i).equals(".CODE"))

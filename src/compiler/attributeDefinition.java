@@ -2,11 +2,6 @@ package compiler;
 
 import java.util.Vector;
 
-import javax.swing.JOptionPane;
-import javax.swing.SwingUtilities;
-
-import GUI.MainFrame;
-import utilities.DataUtil;
 
 public class attributeDefinition {
 	public Vector<String> code;
@@ -429,7 +424,7 @@ class expr extends attributeDefinition {
 		this.code.add("@t" + (temp++));
 	}
 
-	public expr(IDENT id) {
+	public expr(IDENT id) throws Exception {
 		super();
 		boolean idJudge = false;
 		for (int i = 0; i < variSignaryIndex; i++) {
@@ -442,23 +437,14 @@ class expr extends attributeDefinition {
 		}
 		if (idJudge == false) {
 			System.out.println("未识别的标识符" + id.name);
-			SwingUtilities.invokeLater(new Runnable() {
-
-				@Override
-				public void run() {
-					// TODO Auto-generated method stub
-					JOptionPane.showMessageDialog(DataUtil.mainframe, "未识别标识符");
-					DataUtil.mainframe.textPane.setText("状态：未识别标识符");
-				}
-			});
-			//System.exit(0);
+			throw new Exception("未识别的标识符" + id.name);
 		}
 		attributeDefinition.VariSignary.removeElementAt(variSignaryIndex);
 		this.code.add("\t= @t" + temp + ",-," + id.name);
 		this.code.add("@t" + (temp++));
 	}
 
-	public expr(expr ex, IDENT id) {
+	public expr(expr ex, IDENT id) throws Exception {
 		super();
 		boolean idJudge = false;
 		for (int i = 0; i < variSignaryIndex; i++) {
@@ -471,16 +457,8 @@ class expr extends attributeDefinition {
 		}
 		if (idJudge == false) {
 			System.out.println("未声明的标识符");
-			SwingUtilities.invokeLater(new Runnable() {
-
-				@Override
-				public void run() {
-					// TODO Auto-generated method stub
-					JOptionPane.showMessageDialog(DataUtil.mainframe, "未识别标识符");
-					DataUtil.mainframe.textPane.setText("状态：未识别标识符");
-				}
-			});
-			//System.exit(0);
+			throw new Exception("未声明的标识符");
+			
 		}
 		attributeDefinition.VariSignary.removeElementAt(variSignaryIndex);
 		for (int i = 0; i < ex.code.size() - 1; i++)
@@ -489,7 +467,7 @@ class expr extends attributeDefinition {
 		this.code.add("@t" + (temp++));
 	}
 
-	public expr(args arg, IDENT id) {
+	public expr(args arg, IDENT id) throws Exception {
 		super();
 		attributeDefinition.VariSignary.removeElementAt(variSignaryIndex);
 		boolean judge = false;
@@ -500,16 +478,7 @@ class expr extends attributeDefinition {
 		}
 		if (judge == false) {
 			System.out.println("函数调用有误");
-			SwingUtilities.invokeLater(new Runnable() {
-
-				@Override
-				public void run() {
-					// TODO Auto-generated method stub
-					JOptionPane.showMessageDialog(DataUtil.mainframe, "函数调用有误");
-					DataUtil.mainframe.textPane.setText("状态：函数调用有误");
-				}
-			});
-			//System.exit(0);
+			throw new Exception("函数调用有误");
 		}
 		this.code.add("\tPUSH $ra" + ",-,-");
 		for (int i = 0; i < arg.code.size(); i++)
@@ -522,7 +491,7 @@ class expr extends attributeDefinition {
 }
 
 class expr_stmt extends attributeDefinition {
-	public expr_stmt(expr ex, IDENT id) {
+	public expr_stmt(expr ex, IDENT id) throws Exception {
 		super();
 		boolean exitJudge = false;
 		for (int i = 0; i < variSignaryIndex; i++) {
@@ -532,16 +501,7 @@ class expr_stmt extends attributeDefinition {
 		}
 		if (exitJudge == false) {
 			System.out.println("未声明的标识符" + id.name);
-			SwingUtilities.invokeLater(new Runnable() {
-
-				@Override
-				public void run() {
-					// TODO Auto-generated method stub
-					JOptionPane.showMessageDialog(DataUtil.mainframe, "未识别标识符");
-					DataUtil.mainframe.textPane.setText("状态：未识别标识符");
-				}
-			});
-			//System.exit(0);
+			throw new Exception("未声明的标识符" + id.name);
 		}
 		attributeDefinition.VariSignary.removeElementAt(variSignaryIndex);
 		for (int i = 0; i < ex.code.size() - 1; i++)
@@ -549,7 +509,7 @@ class expr_stmt extends attributeDefinition {
 		this.code.add("\t= " + id.name + ",-," + ex.code.lastElement());
 	}
 
-	public expr_stmt(expr ex2, expr ex1, IDENT id) {
+	public expr_stmt(expr ex2, expr ex1, IDENT id) throws Exception {
 		super();
 		boolean exitJudge = false;
 		boolean arrayJudge = true;
@@ -563,40 +523,13 @@ class expr_stmt extends attributeDefinition {
 		}
 		if (exitJudge == false && arrayJudge == false) {
 			System.out.println("未声明的标识符" + id.name + " 数组下标溢出");
-			SwingUtilities.invokeLater(new Runnable() {
-
-				@Override
-				public void run() {
-					// TODO Auto-generated method stub
-					JOptionPane.showMessageDialog(DataUtil.mainframe, "未识别标识符"+id.name+" 数组下标溢出");
-					DataUtil.mainframe.textPane.setText("状态：未识别标识符"+id.name+" 数组下标溢出");
-				}
-			});
-			//System.exit(0);
+			throw new Exception("未声明的标识符" + id.name + " 数组下标溢出");
 		} else if (exitJudge == false) {
 			System.out.println("未声明的标识符" + id.name);
-			SwingUtilities.invokeLater(new Runnable() {
-
-				@Override
-				public void run() {
-					// TODO Auto-generated method stub
-					JOptionPane.showMessageDialog(DataUtil.mainframe, "未声明的标识符"+id.name);
-					DataUtil.mainframe.textPane.setText("状态：未声明的标识符" + id.name);
-				}
-			});
-			//System.exit(0);
+			throw new Exception("未声明的标识符" + id.name);
 		} else if (arrayJudge == false) {
 			System.out.println("数组下标溢出");
-			SwingUtilities.invokeLater(new Runnable() {
-
-				@Override
-				public void run() {
-					// TODO Auto-generated method stub
-					JOptionPane.showMessageDialog(DataUtil.mainframe, "数组下标溢出");
-					DataUtil.mainframe.textPane.setText("状态：数组下标溢出");
-				}
-			});
-			//System.exit(0);
+			throw new Exception("数组下标溢出");
 		}
 		attributeDefinition.VariSignary.removeElementAt(variSignaryIndex);
 		for (int i = 0; i < ex1.code.size() - 1; i++)
@@ -615,7 +548,7 @@ class expr_stmt extends attributeDefinition {
 		this.code.add("\t$= -," + ex1.code.lastElement() + "," + ex2.code.lastElement());
 	}
 
-	public expr_stmt(args arg, IDENT id) {
+	public expr_stmt(args arg, IDENT id) throws Exception {
 		super();
 		attributeDefinition.VariSignary.removeElementAt(variSignaryIndex);
 		boolean judge = false;
@@ -631,16 +564,7 @@ class expr_stmt extends attributeDefinition {
 		}
 		if (judge == false) {
 			System.out.println("函数调用有误");
-			SwingUtilities.invokeLater(new Runnable() {
-
-				@Override
-				public void run() {
-					// TODO Auto-generated method stub
-					JOptionPane.showMessageDialog(DataUtil.mainframe, "函数调用有误");
-					DataUtil.mainframe.textPane.setText("状态：函数调用有误");
-				}
-			});
-			//System.exit(0);
+			throw new Exception("函数调用有误");
 		}
 
 		if (returnJudge == false) {
@@ -1012,22 +936,13 @@ class stmt_list extends attributeDefinition {
 }
 
 class local_decl extends attributeDefinition {
-	public local_decl(IDENT id, type_spec type) {
+	public local_decl(IDENT id, type_spec type) throws Exception {
 		super();
 		for (int i = 0; i < variSignaryIndex; i++) {
 			if (attributeDefinition.VariSignary.get(i).name.equals(id.name)
 					&& attributeDefinition.VariSignary.get(i).actionScope.equals(functions.lastElement().name)) {
 				System.out.println("重复定义变量" + id.name);
-				SwingUtilities.invokeLater(new Runnable() {
-
-					@Override
-					public void run() {
-						// TODO Auto-generated method stub
-						JOptionPane.showMessageDialog(DataUtil.mainframe, "重复定义变量" + id.name);
-						DataUtil.mainframe.textPane.setText("状态：重复定义变量" + id.name);
-					}
-				});
-				//System.exit(0);
+				throw new Exception("重复定义变量" + id.name);
 			}
 		}
 		attributeDefinition.VariSignary.get(variSignaryIndex++).set("Integer", "Variable", 1,
@@ -1035,21 +950,13 @@ class local_decl extends attributeDefinition {
 		data.add("\t" + id.name + ":\t.WORD\t?");
 	}
 
-	public local_decl(int_literal intl, IDENT id, type_spec type) {
+	public local_decl(int_literal intl, IDENT id, type_spec type) throws Exception {
 		super();
 		for (int i = 0; i < variSignaryIndex; i++) {
 			if (attributeDefinition.VariSignary.get(i).name.equals(id.name)
 					&& attributeDefinition.VariSignary.get(i).actionScope.equals(functions.lastElement().name)) {
 				System.out.println("重复定义变量" + id.name);
-				SwingUtilities.invokeLater(new Runnable() {
-
-					@Override
-					public void run() {
-						// TODO Auto-generated method stub
-						JOptionPane.showMessageDialog(DataUtil.mainframe, "重复定义变量" + id.name);
-						DataUtil.mainframe.textPane.setText("状态：重复定义变量" + id.name);
-					}
-				});
+				throw new Exception("重复定义变量" + id.name);
 				//System.exit(0);
 			}
 		}
@@ -1111,21 +1018,12 @@ class compound_stmt extends attributeDefinition {
 }
 
 class param extends attributeDefinition {
-	public param(IDENT id, type_spec type) {
+	public param(IDENT id, type_spec type) throws Exception {
 		for (int i = 0; i < variSignaryIndex; i++) {
 			if (attributeDefinition.VariSignary.get(i).name.equals(id.name)
 					&& attributeDefinition.VariSignary.get(i).actionScope.equals(functions.lastElement().name)) {
 				System.out.println("重复定义参数" + id.name);
-				SwingUtilities.invokeLater(new Runnable() {
-
-					@Override
-					public void run() {
-						// TODO Auto-generated method stub
-						JOptionPane.showMessageDialog(DataUtil.mainframe, "重复定义参数" + id.name);
-						DataUtil.mainframe.textPane.setText("状态：重复定义参数" + id.name);
-					}
-				});
-				//System.exit(0);
+				throw new Exception("重复定义参数" + id.name);
 			}
 		}
 		attributeDefinition.VariSignary.get(variSignaryIndex++).set("Integer", "Parameter", 1,
@@ -1133,21 +1031,12 @@ class param extends attributeDefinition {
 		attributeDefinition.functions.lastElement().argsName.add(new parameter(type, id));
 	}
 
-	public param(int_literal intl, IDENT id, type_spec type) {
+	public param(int_literal intl, IDENT id, type_spec type) throws Exception {
 		for (int i = 0; i < variSignaryIndex; i++) {
 			if (attributeDefinition.VariSignary.get(i).name.equals(id.name)
 					&& attributeDefinition.VariSignary.get(i).actionScope.equals(functions.lastElement().name)) {
 				System.out.println("重复定义参数" + id.name);
-				SwingUtilities.invokeLater(new Runnable() {
-
-					@Override
-					public void run() {
-						// TODO Auto-generated method stub
-						JOptionPane.showMessageDialog(DataUtil.mainframe, "重复定义参数" + id.name);
-						DataUtil.mainframe.textPane.setText("状态：重复定义参数" + id.name);
-					}
-				});
-				//System.exit(0);
+				throw new Exception("重复定义参数" + id.name);
 			}
 		}
 		attributeDefinition.VariSignary.get(variSignaryIndex++).set("Array", "Parameter", intl.lexval,
@@ -1173,7 +1062,7 @@ class param_list extends attributeDefinition {
 class params extends attributeDefinition {
 	public int number;
 
-	public params(param_list pl) {
+	public params(param_list pl) throws Exception {
 		this.number = pl.number;
 		attributeDefinition.functions.lastElement().argsNum = this.number;
 
@@ -1183,21 +1072,12 @@ class params extends attributeDefinition {
 							.lastElement().argsNum
 					&& attributeDefinition.functions.get(i).activeJudge == true) {
 				System.out.println("函数重复定义");
-				SwingUtilities.invokeLater(new Runnable() {
-
-					@Override
-					public void run() {
-						// TODO Auto-generated method stub
-						JOptionPane.showMessageDialog(DataUtil.mainframe, "函数重复定义");
-						DataUtil.mainframe.textPane.setText("状态：函数重复定义");
-					}
-				});
-				//System.exit(0);
+				throw new Exception("函数重复定义");
 			}
 		}
 	}
 
-	public params() {
+	public params() throws Exception {
 		this.number = 0;
 		attributeDefinition.functions.lastElement().argsNum = 0;
 
@@ -1207,16 +1087,7 @@ class params extends attributeDefinition {
 							.lastElement().argsNum
 					&& attributeDefinition.functions.get(i).activeJudge == true) {
 				System.out.println("函数重复定义");
-				SwingUtilities.invokeLater(new Runnable() {
-
-					@Override
-					public void run() {
-						// TODO Auto-generated method stub
-						JOptionPane.showMessageDialog(DataUtil.mainframe, "函数重复定义");
-						DataUtil.mainframe.textPane.setText("状态：函数重复定义");
-					}
-				});
-				//System.exit(0);
+				throw new Exception("函数重复定义");
 			}
 		}
 	}
@@ -1232,7 +1103,7 @@ class FUNCTION_IDENT extends attributeDefinition {
 }
 
 class fun_decl extends attributeDefinition {
-	public fun_decl(compound_stmt cstmt, params pparam, FUNCTION_IDENT id, type_spec type) {
+	public fun_decl(compound_stmt cstmt, params pparam, FUNCTION_IDENT id, type_spec type) throws Exception {
 		super();
 		functions.lastElement().activeJudge = true;
 		functions.lastElement().returnType = type.type;
@@ -1240,49 +1111,32 @@ class fun_decl extends attributeDefinition {
 		if (returnInt == true) {
 			if (type.type.equals("VOID")) {
 				System.out.println("返回类型有误");
-				SwingUtilities.invokeLater(new Runnable() {
-
-					@Override
-					public void run() {
-						// TODO Auto-generated method stub
-						JOptionPane.showMessageDialog(DataUtil.mainframe, "返回类型有误");
-						DataUtil.mainframe.textPane.setText("状态：返回类型有误");
-					}
-				});
-				// System.exit(0);
+				throw new Exception("返回类型有误");
 			} else
 				returnInt = false;
 		} else {
 			if (type.type.equals("INT")) {
 				System.out.println("状态：返回类型有误");
-				SwingUtilities.invokeLater(new Runnable() {
-
-					@Override
-					public void run() {
-						// TODO Auto-generated method stub
-						JOptionPane.showMessageDialog(DataUtil.mainframe, "返回类型有误");
-						DataUtil.mainframe.textPane.setText("返回类型有误");
-					}
-				});
-				// System.exit(0);
+				throw new Exception("返回类型有误");
 			}
 		}
 
-		for (int i = 0; i < attributeDefinition.functions.size() - 1; i++) {
-			if (functions.get(i).name.equals(id.code.get(0)) && functions.get(i).activeJudge == false) {
-				functions.removeElementAt(i);
-			} else if (functions.get(i).name.equals(id.code.get(0)) && functions.get(i).activeJudge == true) {
-				System.out.println("函数重复定义" + id.code.get(0));
-				SwingUtilities.invokeLater(new Runnable() {
 
-					@Override
-					public void run() {
-						// TODO Auto-generated method stub
-						JOptionPane.showMessageDialog(DataUtil.mainframe, "函数重复定义");
-						DataUtil.mainframe.textPane.setText("状态：函数重复定义");
-					}
-				});
-				//System.exit(0);
+		for(int i = 0 ; i < attributeDefinition.functions.size()-1 ; i++)
+		{
+			if(functions.get(i).name.equals(id.code.get(0)) && functions.get(i).activeJudge == false)
+			{
+				if(functions.get(i).argsNum != pparam.number)
+				{
+					System.out.println("函数实现与定义不符");
+					throw new Exception("函数实现与定义不符");
+				}
+				functions.removeElementAt(i);
+			}
+			else if(functions.get(i).name.equals(id.code.get(0)) && functions.get(i).activeJudge == true)
+			{
+				System.out.println("函数重复定义"+id.code.get(0));
+				throw new Exception("函数重复定义"+id.code.get(0));
 			}
 		}
 		this.data.addAll(cstmt.data);
@@ -1421,44 +1275,26 @@ class fun_decl extends attributeDefinition {
 }
 
 class var_decl extends attributeDefinition {
-	public var_decl(IDENT id, type_spec type) {
+	public var_decl(IDENT id, type_spec type) throws Exception {
 		super();
 		for (int i = 0; i < variSignaryIndex; i++) {
 			if (attributeDefinition.VariSignary.get(i).name.equals(id.name)
 					&& attributeDefinition.VariSignary.get(i).actionScope.equals("Global")) {
 				System.out.println("重复定义变量" + id.name);
-				SwingUtilities.invokeLater(new Runnable() {
-
-					@Override
-					public void run() {
-						// TODO Auto-generated method stub
-						JOptionPane.showMessageDialog(DataUtil.mainframe, "重复定义变量" + id.name);
-						DataUtil.mainframe.textPane.setText("状态：重复定义变量" + id.name);
-					}
-				});
-				//System.exit(0);
+				throw new Exception("重复定义变量" + id.name);
 			}
 		}
 		attributeDefinition.VariSignary.get(variSignaryIndex++).set("Integer", "Variable", 1, "Global");
 		data.add("\t" + id.name + ":\t.WORD\t?");
 	}
 
-	public var_decl(int_literal intl, IDENT id, type_spec type) {
+	public var_decl(int_literal intl, IDENT id, type_spec type) throws Exception {
 		super();
 		for (int i = 0; i < variSignaryIndex; i++) {
 			if (attributeDefinition.VariSignary.get(i).name.equals(id.name)
 					&& attributeDefinition.VariSignary.get(i).actionScope.equals("Global")) {
 				System.out.println("重复定义变量" + id.name);
-				SwingUtilities.invokeLater(new Runnable() {
-
-					@Override
-					public void run() {
-						// TODO Auto-generated method stub
-						JOptionPane.showMessageDialog(DataUtil.mainframe, "重复定义变量" + id.name);
-						DataUtil.mainframe.textPane.setText("状态：重复定义变量" + id.name);
-					}
-				});
-				//System.exit(0);
+				throw new Exception("重复定义变量" + id.name);
 			}
 		}
 		attributeDefinition.VariSignary.get(variSignaryIndex++).set("Array", "Variable", intl.lexval, "Global");

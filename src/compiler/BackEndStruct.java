@@ -1,6 +1,7 @@
 package compiler;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -41,8 +42,8 @@ public class BackEndStruct {
 		registerDesc = new HashMap<>();
 		variDesc = new HashMap<>();
 		regTeble = new LinkedList<>();
-		String[] regName = new String[] { "$t0", "$t1", "$t2", "$t3", "$t4", "$t5", "$t6", "$t7", "$t8", "$t9"};
-				//"$s0","$s1","$s2","$s2","$s3","$s4","$s5","$s6","$s7"};
+		String[] regName = new String[] { "$t0", "$t1", "$t2", "$t3", "$t4", "$t5", "$t6", "$t7", "$t8", "$t9"//};
+				,"$s0","$s1","$s2","$s2","$s3","$s4","$s5","$s6","$s7","$a0","$a1","$a2","$a3","$v0","$v1"};
 		for (String s : regName)
 			regTeble.add(s);
 		seg2index = new HashMap<>();
@@ -183,7 +184,7 @@ public class BackEndStruct {
 		// TODO Auto-generated method stub
 		writePath = path;
 		BufferedReader reader = new BufferedReader(new FileReader(input));
-		PrintWriter writer = new PrintWriter(writePath);
+		PrintWriter writer = new PrintWriter(new File(writePath));
 		StringBuilder text = new StringBuilder();
 		while (reader.ready()) {
 			String temp = reader.readLine();
@@ -206,7 +207,8 @@ public class BackEndStruct {
 		StringBuilder dataSeg = new StringBuilder();
 		StringBuilder textSeg = new StringBuilder();
 		dataSeg.append(".data\n");
-		textSeg.append(".text\n");
+		textSeg.append(".text\n").append("start:\n").append("\tori\t$sp,$zero,36863\n")
+			.append("\tjal\tmain\n");
 		for (String s : fragments) {
 			String[] parts = s.split(".CODE");
 			if (parts.length == 1) {
@@ -242,9 +244,19 @@ public class BackEndStruct {
 		for(int i=1;i<decs.length;i++){
 			String[] var_val = decs[i].trim().split("\\s+");
 			StringBuilder temp = new StringBuilder();
-			temp.append(funName);
-			for(String str:var_val)
-				temp.append(str).append("\t");
+			String f_vari = funName+var_val[0].substring(0, var_val[0].length()-1);
+			String g_vari = "Global_"+var_val[0].substring(0, var_val[0].length()-1);
+			System.out.println(f_vari+"\t"+g_vari);
+			if(variTable.containsKey(f_vari.trim())){
+				temp.append(f_vari).append(":").append("\t");
+			}else if(variTable.containsKey(g_vari.trim())){
+				temp.append(g_vari).append(":").append("\t");
+			}else{
+				throw new Exception("不存在变量："+var_val[0]);
+			}
+			for(int j=1;j<var_val.length;j++){
+				temp.append(var_val[j]).append("\t");
+			}
 			toReturn[i-1] = temp.toString().trim();
 		}
 		return toReturn;
@@ -258,7 +270,7 @@ public class BackEndStruct {
 		//toReturn.append(lexs[0] + "\n");
 		m_FUNCTION_NAME_REGEX.reset(lexs[0].trim());
 		if(m_FUNCTION_NAME_REGEX.matches()){
-			funName = m_FUNCTION_NAME_REGEX.group(1);	
+			funName = m_FUNCTION_NAME_REGEX.group(1);
 			toReturn.append(funName + ":\n");
 			func2index.put(funName, currentIndex);
 		}else{
@@ -275,8 +287,14 @@ public class BackEndStruct {
 				String args[] = split[1].split(",");
 				if(operator.trim().equals("=")){
 					for(int j=0;j<args.length;j++){
-						if(args[j].trim().matches("[a-zA-Z]\\w*"))
-							args[j] = funName+"_"+args[j];
+						if(args[j].trim().matches("[a-zA-Z]\\w*")){
+							if(variTable.containsKey(funName+"_"+args[j]))
+								args[j] = funName+"_"+args[j];
+							else if(variTable.containsKey("Global_"+args[j]))
+								args[j] = "Global_"+args[j];
+							else throw new Exception("不存在变量："+args[j]);
+						}
+							
 					}
 				}
 				Quaternary q = new Quaternary(operator, args[1], args[2], args[0]);
@@ -295,7 +313,11 @@ public class BackEndStruct {
 				if(operator.trim().equals("=")){
 					for(int j=0;j<args.length;j++){
 						if(args[j].trim().matches("[a-zA-Z]\\w*"))
-							args[j] = funName+"_"+args[j];
+							if(variTable.containsKey(funName+"_"+args[j]))
+								args[j] = funName+"_"+args[j];
+							else if(variTable.containsKey("Global_"+args[j]))
+								args[j] = "Global_"+args[j];
+							else throw new Exception("不存在变量："+args[j]);
 					}
 				}
 				Quaternary q = new Quaternary(operator, args[1], args[2], args[0]);
@@ -708,6 +730,13 @@ public class BackEndStruct {
 			variTable.put(node.actionScope+"_"+node.name, new VariDesc(node));
 			System.out.println(node.actionScope+"\t"+node.morpheme+"\t"+
 					node.name+"\t"+node.property+"\t"+node.size+"\t"+node.type);
+		}
+		
+		Iterator<String> it = variTable.keySet().iterator();
+		while(it.hasNext()){
+			String key = it.next();
+			VariDesc value = variTable.get(key);
+			System.out.println(key+"\t"+value.actionScope+"\t"+value.type);
 		}
 	}
 	

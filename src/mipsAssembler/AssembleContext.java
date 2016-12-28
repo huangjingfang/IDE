@@ -170,6 +170,9 @@ public class AssembleContext {
 				writer_Ins.write(";");
 			}
 		}
+
+		writer_Data.write("memory_initialization_radix=16;\n");
+		writer_Data.write("memory_initialization_vector=\n");
 		for(int i=0;i<binaryData.size();i++){
 			String code = binaryData.get(i);
 			String hex = Utils.Bin2Hex(code, code.length()/Constants.BYTES_PER_WORD).toUpperCase();

@@ -238,11 +238,16 @@ public class MainFrame extends JFrame implements ActionListener {
 							bct.setLex(tr.getLex());
 							System.out.println("is variTable in bct null?"+ (bct.variTable==null));
 							new File(DataUtil.currentFileName.replace(".c", ".mips"));
-							bct.genCode("IntermediateCode.data", DataUtil.currentFileName.replace(".c", ".mips"));
+							bct.genCode( DataUtil.currentFileName.replace(".c", ".temp"), DataUtil.currentFileName.replace(".c", ".mips"));
 							break;
 						}
 					} catch (Exception e1) {
 						// TODO Auto-generated catch block
+						StackTraceElement[] trace = e1.getStackTrace();
+						StringBuilder builder = new StringBuilder();
+						for(StackTraceElement e:trace){
+							builder.append(e.toString());
+						}
 						e1.printStackTrace();
 						textPane.setText(e1.getMessage()+"\n\n\n");
 					}

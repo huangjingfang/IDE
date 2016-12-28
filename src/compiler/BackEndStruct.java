@@ -236,6 +236,7 @@ public class BackEndStruct {
 		String[] toReturn = new String[decs.length-1];
 		String funName;
 		m_DATASEG_REGEX.reset(decs[0]);
+		System.out.println(decs[0]);
 		if(m_DATASEG_REGEX.matches()){
 			funName = m_DATASEG_REGEX.group(1)+"_";
 		}else{

@@ -23,12 +23,19 @@ public class Utils {
 	 * @return
 	 */
 	public static String format(long num, int length) {
-		StringBuilder b = new StringBuilder();
-		String cur = Long.toBinaryString(num);
-		for (int i = cur.length(); i < length; i++) {
-			b.append("0");
+		if(num>=0){
+			StringBuilder b = new StringBuilder();
+			String cur = Long.toBinaryString(num);
+			for (int i = cur.length(); i < length; i++) {
+				b.append("0");
+			}
+			return b.append(cur).toString();
+		}else{
+			String cur = Long.toBinaryString(num);
+			System.out.println(num+":\t"+cur.substring(cur.length()-length));
+			return cur.substring(cur.length()-length);
 		}
-		return b.append(cur).toString();
+		
 	}
 
 	/**
@@ -143,7 +150,7 @@ public class Utils {
 	}
 	
 	public static void main(String[] args) throws Exception {
-		String bin = "0b11111111111111111111111111111111";
-		System.out.println(parseAddr(bin));
+		long a = 4;
+		System.out.println(format(a, 14));
 	}
 }

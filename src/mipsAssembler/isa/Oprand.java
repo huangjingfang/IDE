@@ -157,21 +157,21 @@ public class Oprand {
 				throw new Exception("Invalid Number:"+name);
 			}else {
 				String temp = Integer.toBinaryString(Integer.parseInt(name));
-				if(length<temp.length()){
+				if(Math.pow(2, length)<Long.parseLong(name)){
 					throw new Exception("Invalid Number:"+name);
 				}else{
-					return Utils.format(temp, length);
+					return Utils.format(Long.parseLong(name), length);
 				}
 			}
 		case OFFSET:
 			if(!name.matches("-?\\d+")){
 				throw new Exception("Invalid Number:"+name);
 			}else{
-				String temp = Integer.toBinaryString(Integer.parseInt(name));
-				if(length<temp.length()){
+				//String temp = Integer.toBinaryString(Integer.parseInt(name));
+				if(Math.pow(2, length)<Long.parseLong(name)){
 					throw new Exception("Invalid Number:"+name);
 				}else{
-					return Utils.format(temp, length);
+					return Utils.format(Long.parseLong(name)/4, length);
 				}
 			}
 		case SHIFT_AMOUNT:

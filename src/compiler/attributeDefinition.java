@@ -790,22 +790,25 @@ class arg_list extends attributeDefinition {
 	}
 }
 
-class return_stmt extends attributeDefinition {
+class return_stmt extends attributeDefinition
+{
 	public String next;
-
-	public return_stmt() {
+	//FIXME
+	public return_stmt()
+	{
 		super();
-		attributeDefinition.returnIndex = 2;
-		this.code.add("\tJR $ra" + ",-,-");
+		attributeDefinition.returnIndex = 1;
+		this.code.add("\tJR $ra"+",-,-");
 	}
-
-	public return_stmt(expr ex) {
+	
+	public return_stmt(expr ex)
+	{
 		super();
-		attributeDefinition.returnIndex = 2 + ex.code.size();
-		for (int i = 0; i < ex.code.size() - 1; i++)
+		attributeDefinition.returnIndex = 1+ex.code.size();
+		for(int i = 0 ; i < ex.code.size()-1 ; i++)
 			this.code.add(new String(ex.code.get(i)));
-		this.code.add("\tPUSH " + ex.code.lastElement() + ",-,-");
-		this.code.add("\tJR $ra" + ",-,-");
+		this.code.add("\tPUSH "+ex.code.lastElement()+",-,-");
+		this.code.add("\tJR $ra"+",-,-");
 		attributeDefinition.returnInt = true;
 	}
 }
@@ -1102,174 +1105,237 @@ class FUNCTION_IDENT extends attributeDefinition {
 	}
 }
 
-class fun_decl extends attributeDefinition {
-	public fun_decl(compound_stmt cstmt, params pparam, FUNCTION_IDENT id, type_spec type) throws Exception {
+class fun_decl extends attributeDefinition
+{
+	public fun_decl(compound_stmt cstmt,params pparam,FUNCTION_IDENT id,type_spec type) throws Exception
+	{
 		super();
 		functions.lastElement().activeJudge = true;
 		functions.lastElement().returnType = type.type;
-
-		if (returnInt == true) {
-			if (type.type.equals("VOID")) {
-				System.out.println("返回类型有误");
-				throw new Exception("返回类型有误");
-			} else
-				returnInt = false;
-		} else {
-			if (type.type.equals("INT")) {
-				System.out.println("状态：返回类型有误");
+		
+		if(returnInt == true)
+		{
+			if(type.type.equals("VOID"))
+			{
+//				System.out.println("返回类型有误");
+//				System.exit(0);
 				throw new Exception("返回类型有误");
 			}
 		}
-
-
+		else
+		{
+			if(type.type.equals("INT"))
+			{
+				throw new Exception("返回类型有误");
+			}
+		}
+		
 		for(int i = 0 ; i < attributeDefinition.functions.size()-1 ; i++)
 		{
 			if(functions.get(i).name.equals(id.code.get(0)) && functions.get(i).activeJudge == false)
 			{
 				if(functions.get(i).argsNum != pparam.number)
 				{
-					System.out.println("函数实现与定义不符");
+//					System.out.println("函数实现与定义不符");
 					throw new Exception("函数实现与定义不符");
+//					System.exit(0);
 				}
 				functions.removeElementAt(i);
 			}
 			else if(functions.get(i).name.equals(id.code.get(0)) && functions.get(i).activeJudge == true)
 			{
-				System.out.println("函数重复定义"+id.code.get(0));
+//				System.out.println("函数重复定义"+id.code.get(0));
+//				System.exit(0);
 				throw new Exception("函数重复定义"+id.code.get(0));
 			}
 		}
 		this.data.addAll(cstmt.data);
-		for (int i = 0; i < attributeDefinition.functions.size(); i++) {
-			if (attributeDefinition.functions.get(i).name.equals(id.code.get(0))) {
-				for (int j = 0; j < attributeDefinition.functions.get(i).argsName.size(); j++) {
-					if (attributeDefinition.functions.get(i).argsName.get(j).type.equals("Integer")) {
-						this.data.add("\t" + attributeDefinition.functions.get(i).argsName.get(j).name + ":\t.WORD\t?");
-					} else if (attributeDefinition.functions.get(i).argsName.get(j).type.equals("Array")) {
-						String stemp = "\t" + attributeDefinition.functions.get(i).argsName.get(j).name + ":\t.WORD";
-						for (int k = 0; k < attributeDefinition.functions.get(i).argsName.get(j).number; k++)
+		for(int i = 0 ; i < attributeDefinition.functions.size() ; i++)
+		{
+			if(attributeDefinition.functions.get(i).name.equals(id.code.get(0)))
+			{
+				for(int j = 0 ; j < attributeDefinition.functions.get(i).argsName.size() ; j++)
+				{
+					if(attributeDefinition.functions.get(i).argsName.get(j).type.equals("Integer"))
+					{
+						this.data.add("\t"+attributeDefinition.functions.get(i).argsName.get(j).name+":\t.BYTE\t?");
+					}
+					else if(attributeDefinition.functions.get(i).argsName.get(j).type.equals("Array"))
+					{
+						String stemp = "\t"+attributeDefinition.functions.get(i).argsName.get(j).name+":\t.BYTE";
+						for(int k = 0 ; k < attributeDefinition.functions.get(i).argsName.get(j).number ; k++)
 							stemp = stemp + "\t?";
 						this.data.add(stemp);
 					}
 				}
 			}
 		}
-
-		this.code.add(".DATA [" + id.code.get(0) + "]");
-
-		for (int i = 0; i < this.data.size(); i++)
+		
+		this.code.add(".DATA ["+id.code.get(0)+"]");
+		
+		for(int i = 0 ; i < this.data.size() ; i++)
 			this.code.add(this.data.get(i));
-
-		this.code.add(".CODE [" + id.code.get(0) + "]");
-		this.code.add(id.code.get(0) + ":");
-
+		
+		this.code.add(".CODE ["+id.code.get(0)+"]");
+		this.code.add(id.code.get(0)+":");
+		
 		Vector<String> argName = new Vector<String>();
 		Vector<String> register = new Vector<String>();
 		Vector<Integer> indexTemp = new Vector<Integer>();
-
-		for (int i = 0; i < attributeDefinition.functions.size(); i++) {
-			if (attributeDefinition.functions.get(i).name.equals(id.code.get(0))) {
-				for (int j = attributeDefinition.functions.get(i).argsName.size() - 1; j >= 0; j--) {
-					if (attributeDefinition.functions.get(i).argsName.get(j).type.equals("Integer")) {
-						this.code.add("\tPOP @t" + temp + ",-,-");
+		
+		for(int i = 0 ; i < attributeDefinition.functions.size() ; i++)
+		{
+			if(attributeDefinition.functions.get(i).name.equals(id.code.get(0)))
+			{
+				for(int j = attributeDefinition.functions.get(i).argsName.size()-1 ; j >= 0 ; j--)
+				{
+					if(attributeDefinition.functions.get(i).argsName.get(j).type.equals("Integer"))
+					{
+						this.code.add("\tPOP @t"+temp+",-,-");
 						argName.add(attributeDefinition.functions.get(i).argsName.get(j).name);
-						register.add("@t" + temp);
+						register.add("@t"+temp);
 						indexTemp.add(-1);
-						temp = temp + 1;
-					} else if (attributeDefinition.functions.get(i).argsName.get(j).type.equals("Array")) {
-						int index = attributeDefinition.functions.get(i).argsName.get(j).number - 1;
-						for (int k = 0; k < attributeDefinition.functions.get(i).argsName.get(j).number; k++) {
-							this.code.add("\tPOP @t" + temp + ",-,-");
+						temp = temp + 1 ;
+					}
+					else if(attributeDefinition.functions.get(i).argsName.get(j).type.equals("Array"))
+					{
+						int index = attributeDefinition.functions.get(i).argsName.get(j).number-1;
+						for(int k = 0 ; k < attributeDefinition.functions.get(i).argsName.get(j).number ; k++)
+						{
+							this.code.add("\tPOP @t"+temp+",-,-");
 							argName.add(attributeDefinition.functions.get(i).argsName.get(j).name);
-							register.add("@t" + temp);
+							register.add("@t"+temp);
 							indexTemp.add(index--);
 						}
-						temp = temp + 1;
+						temp = temp + 1 ;
 					}
 				}
 			}
 		}
-
-		for (int i = 0; i < this.data.size(); i++) {
-			String[] stemp = this.data.get(i).split("\t");
-			if (stemp.length == 4) {
-				this.code.add("\t= @t" + temp + ",-," + (stemp[1].substring(0, stemp[1].length() - 1)));
-				this.code.add("\tPUSH @t" + temp + ",-,-");
+		
+		for(int i = 0 ; i < this.data.size() ; i++)
+		{
+			String []stemp = this.data.get(i).split("\t");
+			if(stemp.length == 4)
+			{
+				this.code.add("\t= @t"+temp+",-,"+(stemp[1].substring(0, stemp[1].length()-1)));
+				this.code.add("\tPUSH @t"+temp+",-,-");
 				temp = temp + 1;
-			} else {
-				for (int j = 2; j < stemp.length; j++) {
-					this.code.add("\t= @t" + temp + "," + (j - 2) + "," + stemp[1].substring(0, stemp.length - 1));
-					this.code.add("\tPUSH @t" + temp + ",-,-");
-					temp = temp + 1;
-				}
 			}
-		}
-
-		for (int i = 0; i < argName.size(); i++) {
-			if (indexTemp.get(i) == -1)
-				this.code.add("\t= " + argName.get(i) + ",-," + register.get(i));
 			else
-				this.code.add("\t= " + argName.get(i) + "," + indexTemp.get(i) + "," + register.get(i));
+			{
+				for(int j = 2 ; j < stemp.length ; j++)
+				{
+					this.code.add("\t= @t"+temp+","+(j-2)+","+stemp[1].substring(0, stemp.length-1));
+					this.code.add("\tPUSH @t"+temp+",-,-");
+					temp = temp + 1;
+				}
+			}
 		}
-
-		for (int i = 0; i < cstmt.code.size() - attributeDefinition.returnIndex; i++)
+		
+		for(int i = 0 ; i < argName.size() ; i++)
+		{
+			if(indexTemp.get(i) == -1)
+				this.code.add("\t= "+argName.get(i)+",-,"+register.get(i));
+			else
+				this.code.add("\t= "+argName.get(i)+","+indexTemp.get(i)+","+register.get(i));
+		}
+		//FIXME
+		for(int i = 0 ; i < cstmt.code.size()-attributeDefinition.returnIndex ; i++)
 			this.code.add(new String(cstmt.code.get(i)));
-
-		for (int i = this.data.size() - 1; i >= 0; i--) {
-			if (judge == true) {
-				this.code.add(attributeDefinition.next + ":" + "\tPOP @t" + (temp) + ",-,-");
-				String[] stemp = this.data.get(i).split("\t");
-				if (stemp.length == 4) {
-					this.code.add("\t= @t" + temp + ",-," + (stemp[1].substring(0, stemp[1].length() - 1)));
+		
+		if(cstmt.code.lastElement().contains("JR") && returnInt)
+		{
+			for(int i = cstmt.code.size()-attributeDefinition.returnIndex ; i < cstmt.code.size()-2 ; i++)
+				this.code.add(new String(cstmt.code.get(i)));
+		}
+		
+		for(int i = this.data.size()-1 ; i >= 0 ; i--)
+		{
+			if(judge == true)
+			{
+				this.code.add(attributeDefinition.next+":"+"\tPOP @t"+(temp)+",-,-");
+				String []stemp = this.data.get(i).split("\t");
+				if(stemp.length == 4)
+				{
+					this.code.add("\t= "+(stemp[1].substring(0, stemp[1].length()-1))+",-,"+"@t"+temp);
 					temp = temp + 1;
-				} else {
-					for (int j = 2; j < stemp.length; j++) {
-						if (j != 2)
-							this.code.add("\tPOP @t" + (temp) + ",-,-");
-						this.code.add("\t= @t" + temp + "," + (j - 2) + "," + stemp[1].substring(0, stemp.length - 1));
+				}
+				else
+				{
+					for(int j = 2 ; j < stemp.length ; j++)
+					{
+						if(j != 2)
+							this.code.add("\tPOP @t"+(temp)+",-,-");
+						this.code.add("\t= "+stemp[1].substring(0, stemp.length-1)+","+(j-2)+","+"@t"+temp);
 						temp = temp + 1;
 					}
 				}
 				judge = false;
-			} else {
-				String[] stemp = this.data.get(i).split("\t");
-				if (stemp.length == 4) {
-					this.code.add("\tPOP @t" + (temp) + ",-,-");
-					this.code.add("\t= @t" + temp + ",-," + (stemp[1].substring(0, stemp[1].length() - 1)));
+			}
+			else
+			{
+				String []stemp = this.data.get(i).split("\t");
+				if(stemp.length == 4)
+				{
+					this.code.add("\tPOP @t"+(temp)+",-,-");
+					this.code.add("\t= "+(stemp[1].substring(0, stemp[1].length()-1))+",-,"+"@t"+temp);
 					temp = temp + 1;
-				} else {
-					for (int j = 2; j < stemp.length; j++) {
-						this.code.add("\tPOP @t" + (temp) + ",-,-");
-						this.code.add("\t= @t" + temp + "," + (j - 2) + "," + stemp[1].substring(0, stemp.length - 1));
+				}
+				else
+				{
+					for(int j = 2 ; j < stemp.length ; j++)
+					{
+						this.code.add("\tPOP @t"+(temp)+",-,-");
+						this.code.add("\t= "+stemp[1].substring(0, stemp.length-1)+","+(j-2)+","+"@t"+temp);
 						temp = temp + 1;
 					}
 				}
 			}
 		}
-
-		if (cstmt.code.isEmpty() || !cstmt.code.lastElement().contains("JR")) {
-			if (judge == true) {
-				this.code.add(attributeDefinition.next + ":" + "\tPOP @t" + (temp) + ",-,-");
-				this.code.add("\tJR @t" + (temp++) + ",-,-");
+		
+		if(cstmt.code.isEmpty() || !cstmt.code.lastElement().contains("JR"))
+		{
+			if(judge == true)
+			{
+				this.code.add("\tJR $ra,-,-");
 				judge = false;
-			} else {
-				this.code.add("\tPOP @t" + (temp) + ",-,-");
-				this.code.add("\tJR @t" + (temp++) + ",-,-");
 			}
-		} else
-			for (int i = cstmt.code.size() - attributeDefinition.returnIndex; i < cstmt.code.size(); i++)
+			else
+			{
+				this.code.add("\tJR $ra,-,-");
+			}
+		}
+		else if(returnInt)
+		{
+			for(int i = cstmt.code.size()-2 ; i < cstmt.code.size() ; i++)
 				this.code.add(new String(cstmt.code.get(i)));
+		}
+		else
+		{
+			for(int i = cstmt.code.size()-attributeDefinition.returnIndex ; i < cstmt.code.size() ; i++)
+				this.code.add(new String(cstmt.code.get(i)));
+		}
+		returnInt = false;
 	}
-
-	public fun_decl(params pparam, FUNCTION_IDENT id, type_spec type) {
+	
+	public fun_decl(params pparam,FUNCTION_IDENT id,type_spec type)
+	{
 		super();
 		functions.lastElement().activeJudge = false;
 		functions.lastElement().returnType = type.type;
-		for (int i = 0; i < variSignaryIndex; i++) {
-			if (attributeDefinition.VariSignary.get(i).actionScope.equals(id.code.get(0))) {
+		for(int i = 0 ; i < variSignaryIndex ; i++)
+		{
+			if(attributeDefinition.VariSignary.get(i).actionScope.equals(id.code.get(0)))
+			{
 				attributeDefinition.VariSignary.removeElementAt(i);
 				--variSignaryIndex;
 			}
+		}
+		if(attributeDefinition.VariSignary.get(variSignaryIndex-1).actionScope.equals(id.code.get(0)))
+		{
+			attributeDefinition.VariSignary.removeElementAt(variSignaryIndex-1);
+			--variSignaryIndex;
 		}
 	}
 }

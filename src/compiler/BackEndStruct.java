@@ -43,7 +43,7 @@ public class BackEndStruct {
 		variDesc = new HashMap<>();
 		regTeble = new LinkedList<>();
 		String[] regName = new String[] { "$t0", "$t1", "$t2", "$t3", "$t4", "$t5", "$t6", "$t7", "$t8", "$t9"//};
-				,"$s0","$s1","$s2","$s2","$s3","$s4","$s5","$s6","$s7","$a0","$a1","$a2","$a3","$v0","$v1"};
+				,"$s0","$s1","$s2","$s3","$s4","$s5","$s6","$s7","$a0","$a1","$a2","$a3","$v0","$v1"};
 		for (String s : regName)
 			regTeble.add(s);
 		seg2index = new HashMap<>();
@@ -71,7 +71,7 @@ public class BackEndStruct {
 			toReturn[0] = regTeble.get(regIndex);
 			regIndex = (regIndex+1)%regTeble.size();
 		}
-		System.out.println(arg+" 分配到寄存器 "+toReturn[0]);
+		System.out.println("下一即将分配的寄存器为："+regIndex+regTeble.get(regIndex));
 		return toReturn;
 	}
 
@@ -345,7 +345,7 @@ public class BackEndStruct {
 		System.out.println();
 		for(int i=0;i<addr.length;i++){
 			registerDesc.put(addr[i], qValues[i]);
-			System.out.print(addr[i]+":"+qValues[i]+"\t\t\t");
+			System.out.print("寄存器重分配："+addr[i]+":"+qValues[i]+"\t\t\t");
 			
 		}
 		System.out.println();
@@ -510,26 +510,37 @@ public class BackEndStruct {
 			} else {
 				//将变量存入寄存器load
 				//如果variDesc中有一个临时变量对应一个临时变量，并且该临时变量在寄存器中，
-				String tempVar = variDesc.get(q.arg1);
-				String varAddr = getKey(registerDesc, tempVar);
-				System.out.println(registerDesc);
-				if(tempVar == null||varAddr==null){
-					addr = getReg(q.result);
-					String oldVar = registerDesc.get(addr[0]);
-					String vari = getKey(variDesc, oldVar);
-					System.out.println("OldValue:"+oldVar+"\tVari:"+vari);
-					if(vari!=null){
-						variDesc.put(vari, null);
-					}
-					registerDesc.put(addr[0], q.result);
-					variDesc.put(q.arg1, q.result);
-					builder.append(pre_process(addr, new String[]{q.result}));
-					builder.append("\tlw "+addr[0]+","+q.arg1+ " ($zero)\n");
-				}else{
-					variDesc.put(q.arg1, q.result);
-					registerDesc.put(varAddr, q.result);
-					System.out.println(q.arg1+":"+q.result+"\t"+varAddr+":"+q.result);
+				addr = getReg(q.result);
+				String oldVar = registerDesc.get(addr[0]);
+				String vari = getKey(variDesc, oldVar);
+				System.out.println("OldValue:"+oldVar+"\tVari:"+vari);
+				if(vari!=null){
+					variDesc.put(vari, null);
 				}
+				//registerDesc.put(addr[0], q.result);
+				variDesc.put(q.arg1, q.result);
+				builder.append(pre_process(addr, new String[]{q.result}));
+				builder.append("\tlw "+addr[0]+","+q.arg1+ " ($zero)\n");
+//				String tempVar = variDesc.get(q.arg1);
+//				String varAddr = getKey(registerDesc, tempVar);
+//				System.out.println(registerDesc);
+//				if(tempVar == null||varAddr==null){
+//					addr = getReg(q.result);
+//					String oldVar = registerDesc.get(addr[0]);
+//					String vari = getKey(variDesc, oldVar);
+//					System.out.println("OldValue:"+oldVar+"\tVari:"+vari);
+//					if(vari!=null){
+//						variDesc.put(vari, null);
+//					}
+//					registerDesc.put(addr[0], q.result);
+//					variDesc.put(q.arg1, q.result);
+//					builder.append(pre_process(addr, new String[]{q.result}));
+//					builder.append("\tlw "+addr[0]+","+q.arg1+ " ($zero)\n");
+//				}else{
+//					variDesc.put(q.arg1, q.result);
+//					registerDesc.put(varAddr, q.result);
+//					System.out.println(q.arg1+":"+q.result+"\t"+varAddr+":"+q.result);
+//				}
 			}
 			
 			
@@ -710,10 +721,15 @@ public class BackEndStruct {
 			builder.append("\tjal "+q.result+ "\n");
 			break;
 		case "JR":
-			addr = getReg(q.result);
-			qValues = new String[]{q.result};
-			pre_process(addr, qValues);
-			builder.append("\tjr "+addr[0]+ "\n");
+			if(q.result.trim().equals("$ra")){
+				builder.append("\tjr $ra\n");
+			}else{
+				addr = getReg(q.result);
+				qValues = new String[]{q.result};
+				pre_process(addr, qValues);
+				builder.append("\tjr "+addr[0]+ "\n");
+			}
+			
 			break;
 		// 其他指令
 

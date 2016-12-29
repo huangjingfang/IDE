@@ -26,7 +26,6 @@ public class AssembleContext {
 	private HashMap<String, Long> vari2Addr;
 	public ArrayList<String> binaryData;
 	public ArrayList<String> binaryIns;
-	private long stackPoint;
 	private int codeSegLength;
 	private int dataSegLength;
 
@@ -35,7 +34,6 @@ public class AssembleContext {
 		binaryData = new ArrayList<>();
 		binaryIns = new ArrayList<>();
 		vari2Addr = new HashMap<>();
-		stackPoint = 0X00000000;
 		codeSegLength = 0;
 		dataSegLength = 0;
 	}
@@ -120,16 +118,18 @@ public class AssembleContext {
 					if(binaryIns.get(i).startsWith("000010")||binaryIns.get(i).startsWith("000011")){
 						//j和jal
 						//System.out.println("J型指令");
-						String labelAddrB = Long.toBinaryString(label2Addr.get(key));
+						long addr = label2Addr.get(key)/4;
+						String labelAddrB = Utils.format(addr, 26);
+						//String labelAddrB = Long.toBinaryString(label2Addr.get(key));
 						System.out.println("J型指令：当前指令地址 :"+codeAddr+";标签"+key+"地址:"+label2Addr.get(key));
-						binaryIns.set(i, binaryIns.get(i).replace(key,Utils.format(labelAddrB, 26) ));
+						binaryIns.set(i, binaryIns.get(i).replace(key,labelAddrB));
 					}else{
 						//offset
 						//System.out.println("I型指令");
 						long labelAddr = label2Addr.get(key);
 						System.out.println("R型指令：当前指令地址 :"+codeAddr+";标签"+key+"地址:"+labelAddr);
 						long offset = labelAddr-codeAddr;
-						String offsetB = Long.toBinaryString(offset);
+						String offsetB = Long.toBinaryString(offset/4);
 						System.out.println("偏移值："+offset);
 						if(offsetB.length()==64)
 							offsetB = offsetB.substring(48, 64);
@@ -211,11 +211,11 @@ public class AssembleContext {
 	public long getVariableAddress(String name) throws Exception {
 		// TODO Auto-generated method stub
 		System.out.println("Variable Name:"+name);
-		Iterator<String> it = vari2Addr.keySet().iterator();
-		while(it.hasNext()){
-			String key = it.next();
-			System.out.println(key+":"+vari2Addr.get(key));
-		}
+//		Iterator<String> it = vari2Addr.keySet().iterator();
+//		while(it.hasNext()){
+//			String key = it.next();
+//			System.out.println(key+":"+vari2Addr.get(key));
+//		}
 		if(vari2Addr.get(name)==null){
 			String global = "Global"+name.substring(name.indexOf("_"));
 			System.out.println(global+vari2Addr.get(global));
@@ -224,13 +224,6 @@ public class AssembleContext {
 			}else throw new Exception("不存在变量："+name+"或者"+global);
 		}
 		return vari2Addr.get(name);
-	}
-
-	public long getSp(){
-		return stackPoint;
-	}
-	public void incSp(long inscrement){
-		stackPoint+=inscrement;
 	}
 	public static void setDsa(long dataseg){
 		dsa = dataseg;

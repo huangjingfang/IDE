@@ -139,18 +139,20 @@ public class LineParse {
 	//57条指令的解析
 	private static void parseInstruction(String op,String oprand,AssembleContext context) throws Exception{
 		String[] new_instruction = pre_process(op,oprand,context);
+		//System.out.println("++++++++++++++++++++++指令："+op+"\t"+oprand);
 		if(new_instruction[0].equals("mult-ins")){
 			String[] inss = new_instruction[1].split("\n");
 			for(String s:inss){
 				parseLine(s, context);
 			}
 		}else{
+			System.out.println("指令："+new_instruction[0]+"\t"+new_instruction[1]);
 			Operation operation = Operation.getOperationByName(new_instruction[0]);
 			String[] ops = splitOprand(new_instruction[1]);
 			List<Oprand> oprands = Oprand.parse(ops,operation.mode.types);
 			Instruction ins = Instruction.genInstruction(operation, oprands);
 			context.binaryIns.add(ins.genBinary(context));
-			//System.out.println("指令："+op+"\t"+oprand+";指令码："+Utils.Bin2Hex(ins.genBinary(context), 8));
+			//System.out.println(";指令码："+ins.genBinary(context));
 			context.addrInc(Constants.BYTES_PER_INSTRUCTION);
 		}
 	}
@@ -188,7 +190,7 @@ public class LineParse {
 					low16+= high16;
 				}
 				StringBuilder builder = new StringBuilder();
-				builder.append("lui").append("\t").append("$at").append(",").append(high16).append(",").append("\n");
+				builder.append("lui").append("\t").append("$at").append(",").append(high16).append("\n");
 				builder.append("addu").append("\t").append("$at").append(",").append("$at").append(",").append(oprands[2]).append("\n");
 				builder.append(op).append("\t").append(oprands[0]).append(",").append(low16).append(",").append("$at").append("\n");
 				toReturn[1] = builder.toString();
@@ -198,15 +200,23 @@ public class LineParse {
 			break;
 		case "push":
 			//System.out.println("栈指针位置："+context.getSp());
-			toReturn[0] = "sw";
-			toReturn[1] = oprand + ","+context.getSp()+"($sp)";
-			context.incSp(4);
+			toReturn[0] = "mult-ins";
+			StringBuilder builder = new StringBuilder();
+			builder.append("sw\t").append(oprand).append(",0 ($sp)\n");
+			builder.append("addi\t$sp,$sp,4\n");
+			toReturn[1] = builder.toString();
+
 			break;
 		case "pop":
 			//System.out.println("栈指针位置："+context.getSp());
-			toReturn[0] = "lw";
-			toReturn[1] = oprand + ","+context.getSp()+"($sp)";
-			context.incSp(-4);
+			toReturn[0] = "mult-ins";
+			StringBuilder builder1 = new StringBuilder();
+			builder1.append("lw\t").append(oprand).append(",0 ($sp)\n");
+			builder1.append("addi\t$sp,$sp,-4\n");
+			toReturn[1] = builder1.toString();
+//			toReturn[0] = "lw";
+//			toReturn[1] = oprand + ","+context.getSp()+"($sp)";
+//			System.out.println("指令："+op+"\t"+oprand);
 			break;
 		case "adr":
 			String[] oprands = splitOprand(oprand);
@@ -250,16 +260,16 @@ public class LineParse {
 		return toReturn;
 	}
 	
-	public static void main(String[] args) throws Exception {
-		String test = "sw $1,10($3)";
-		AssembleContext context = new AssembleContext();
-		parse(test, context);
-		for(String code:context.binaryIns){
-			System.out.println(code);
-			System.out.println(Utils.Bin2Hex(code, code.length()/4).toUpperCase());
-		}
-		
-	}
+//	public static void main(String[] args) throws Exception {
+//		String test = "sw $1,10($3)";
+//		AssembleContext context = new AssembleContext();
+//		parse(test, context);
+//		for(String code:context.binaryIns){
+//			System.out.println(code);
+//			System.out.println(Utils.Bin2Hex(code, code.length()/4).toUpperCase());
+//		}
+//		
+//	}
 }
 
 

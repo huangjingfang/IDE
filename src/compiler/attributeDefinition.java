@@ -2,7 +2,6 @@ package compiler;
 
 import java.util.Vector;
 
-
 public class attributeDefinition {
 	public Vector<String> code;
 	public Vector<String> data;
@@ -1158,11 +1157,11 @@ class fun_decl extends attributeDefinition
 				{
 					if(attributeDefinition.functions.get(i).argsName.get(j).type.equals("Integer"))
 					{
-						this.data.add("\t"+attributeDefinition.functions.get(i).argsName.get(j).name+":\t.BYTE\t?");
+						this.data.add("\t"+attributeDefinition.functions.get(i).argsName.get(j).name+":\t.WORD\t?");
 					}
 					else if(attributeDefinition.functions.get(i).argsName.get(j).type.equals("Array"))
 					{
-						String stemp = "\t"+attributeDefinition.functions.get(i).argsName.get(j).name+":\t.BYTE";
+						String stemp = "\t"+attributeDefinition.functions.get(i).argsName.get(j).name+":\t.WORD";
 						for(int k = 0 ; k < attributeDefinition.functions.get(i).argsName.get(j).number ; k++)
 							stemp = stemp + "\t?";
 						this.data.add(stemp);
@@ -1296,6 +1295,8 @@ class fun_decl extends attributeDefinition
 		
 		if(cstmt.code.isEmpty() || !cstmt.code.lastElement().contains("JR"))
 		{
+			for(int i = cstmt.code.size()-attributeDefinition.returnIndex ; i < cstmt.code.size() ; i++)
+				this.code.add(new String(cstmt.code.get(i)));
 			if(judge == true)
 			{
 				this.code.add("\tJR $ra,-,-");

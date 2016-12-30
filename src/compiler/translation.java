@@ -60,7 +60,6 @@ public class translation {
 		}
 		
 		boolean judge = my.YaccAnalysis(lexTranslation,regulation);
-		tips = 2;
 		System.out.println("Judge:"+judge);
 		if(judge == true)
 		{
@@ -73,7 +72,7 @@ public class translation {
 //			node.name+"\t"+node.property+"\t"+node.size+"\t"+node.type);
 //			}
 		}else{
-			DataUtil.mainframe.textPane.setText("语法分析有误");
+			throw new Exception("语法分析错误");
 		}
 	}
 	

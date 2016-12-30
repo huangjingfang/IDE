@@ -208,7 +208,7 @@ public class BackEndStruct {
 		StringBuilder textSeg = new StringBuilder();
 		dataSeg.append(".data\n");
 		textSeg.append(".text\n").append("start:\n").append("\tori\t$sp,$zero,36863\n")
-			.append("\tjal\tmain\n");
+			.append("\tjal\tmain\n").append("\tj\tstop\n");
 		for (String s : fragments) {
 			String[] parts = s.split(".CODE");
 			if (parts.length == 1) {
@@ -227,6 +227,7 @@ public class BackEndStruct {
 		}
 		writer.append(dataSeg);
 		writer.append(textSeg);
+		writer.append("stop: j\tstop\n");
 		reader.close();
 		writer.close();
 		System.out.println("指令代码生成结束");
@@ -625,7 +626,7 @@ public class BackEndStruct {
 			qValues = new String[]{q.arg1,q.result};
 			builder.append(pre_process(addr, qValues));
 			String vari = getKey(variDesc, q.arg1);
-			builder.append("\t"+addr[1]+" address of "+vari+"\n");
+			builder.append("\tadr "+addr[1]+","+vari+"\n");
 			break;	
 		case "LSHIFT":
 			if(!q.arg1.matches("@t(\\d)+")){

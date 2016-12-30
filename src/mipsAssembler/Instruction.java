@@ -76,14 +76,14 @@ public class Instruction {
 		case "mtc0":
 			type_R = (InsType_R)op.type;
 			builder.append(type_R.getOp()).append(type_R.getRs()).append(oprands.get(0).genBinary(5,context))
-				.append(oprands.get(1).genBinary(5,context)).append("00000").append(oprands.get(0).genBinary(6,context));
+				.append(oprands.get(1).genBinary(5,context)).append("00000").append(oprands.get(2).genBinary(6,context));
 			break;
 		case "sll":
 		case "srl":
 		case "sra":
 			type_R = (InsType_R)op.type;
 			builder.append(type_R.getOp()).append("00000").append(oprands.get(1).genBinary(5,context))
-				.append(oprands.get(0).genBinary(5,context)).append(oprands.get(3).genBinary(5,context)).append(type_R.getFunc());
+				.append(oprands.get(0).genBinary(5,context)).append(oprands.get(2).genBinary(5,context)).append(type_R.getFunc());
 			break;
 		case "jr":
 			type_R = (InsType_R)op.type;

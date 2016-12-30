@@ -8,7 +8,9 @@ public enum OprandType {
 	ADDRESS,
 	CODE,
 	VARIABLE,
-	DEFAULT;
+	DEFAULT,//非寄存器、非变量的所有数字
+	
+	NULL;//空，所有可能性
 	
 	private static final String REGISTER_REGEX = "\\$\\w+";
 	private static final String NUMBER_REGEX = "\\d+";

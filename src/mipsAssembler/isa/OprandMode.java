@@ -5,17 +5,18 @@ public enum OprandMode {
 	R_RS_RT(OprandType.REGISTER,OprandType.REGISTER),
 	R_RD(OprandType.REGISTER),
 	R_RS(OprandType.REGISTER),
-	R_CP0(OprandType.REGISTER,OprandType.REGISTER),
+	R_CP0(OprandType.REGISTER,OprandType.REGISTER,OprandType.IMMEDIATE),
 	R_RT_RD_SHAMT(OprandType.REGISTER,OprandType.REGISTER,OprandType.SHIFT_AMOUNT),
 	R_RS_RD(OprandType.REGISTER,OprandType.REGISTER),
 	R_CODE(OprandType.CODE),
 	I_RS_RT_IMME(OprandType.REGISTER,OprandType.REGISTER,OprandType.IMMEDIATE),
-	I_RS_IMME(OprandType.REGISTER,OprandType.IMMEDIATE),
+	I_RT_IMME(OprandType.REGISTER,OprandType.IMMEDIATE),
 	I_RS_RT_VARI(OprandType.REGISTER,OprandType.VARIABLE,OprandType.REGISTER),
 	I_RS_RT_OFFSET(OprandType.REGISTER,OprandType.OFFSET,OprandType.REGISTER),
-	I_RT_RS_OFFSET(OprandType.REGISTER,OprandType.OFFSET,OprandType.REGISTER),
+	I_RT_RS_OFFSET(OprandType.REGISTER,OprandType.REGISTER,OprandType.OFFSET),
 	I_RS_OFFSET(OprandType.REGISTER,OprandType.ADDRESS),
 	J_ADDR(OprandType.ADDRESS);
+	
 
 
 	

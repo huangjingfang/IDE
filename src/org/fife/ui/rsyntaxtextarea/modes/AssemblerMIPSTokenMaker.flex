@@ -450,20 +450,47 @@ Operator				= ("+"|"-"|"*"|"/"|"%"|"^"|"|"|"&"|"~"|"!"|"="|"<"|">")
 	"DUP"		{ addToken(Token.FUNCTION); }
 
 	"BYTE" |
+	"HALF" |
 	"WORD" |
-	"DWORD" |
-	"FWORD" |
-	"QWORD" |
-	"TBYTE" |
-	"SBYTE" |
-	"TWORD" |
-	"SWORD" |
-	"SDWORD" |
-	"REAL4" |
-	"REAL8" |
-	"REAL10"		{ addToken(Token.DATA_TYPE); }
+	"FLOAT" |
+	"DOUBLE" |
+	"ASCII" |
+	"ASCIIZ" |
+	"SPACE"		{ addToken(Token.DATA_TYPE); }
 
 	/* Registers */
+	"$0" |
+	"$1" |
+	"$2" |
+	"$3" |
+	"$4" |
+	"$5" |
+	"$6" |
+	"$7" |
+	"$8" |
+	"$9" |
+	"$10" |
+	"$11" |
+	"$12" |
+	"$13" |
+	"$14" |
+	"$15" |
+	"$16" |
+	"$17" |
+	"$18" |
+	"$19" |
+	"$20" |
+	"$21" |
+	"$22" |
+	"$23" |
+	"$24" |	
+	"$25" |
+	"$26" |
+	"$27" |
+	"$28" |
+	"$29" |
+	"$30" |
+	"$31" |
 	"$zero" |
 	"$at" |
 	"$v0" |
@@ -553,7 +580,10 @@ Operator				= ("+"|"-"|"*"|"/"|"%"|"^"|"|"|"&"|"~"|"!"|"="|"<"|">")
 	"slti" |
 	"sltiu" |
 	"j" |
-	"jal"		{ addToken(Token.RESERVED_WORD); }
+	"jal" |
+	"push" |
+	"pop" |
+	"adr"		{ addToken(Token.RESERVED_WORD); }
 
 }
 

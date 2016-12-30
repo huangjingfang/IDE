@@ -221,26 +221,14 @@ public class MainFrame extends JFrame implements ActionListener {
 					try {
 						tr = new translation(lexs);
 						int tips = tr.getTips();
-						switch (tips) {
-						case 0:
-							textPane.setText("×´Ì¬£º´Ê·¨·ÖÎö´íÎó\n\n\n");
-							break;
-						case 1:
-							textPane.setText("×´Ì¬£ºÓï·¨·ÖÎö´íÎó\n\n\n");
-							break;
-						case 2:
-							textPane.setText("×´Ì¬£ºÓïÒå·ÖÎö´íÎó\n\n\n");
-							break;
-						default:
-							textPane.setText("×´Ì¬£º±àÒë³É¹¦\n\n\n");
-							
-							BackEndStruct bct = new BackEndStruct();
-							bct.setLex(tr.getLex());
-							System.out.println("is variTable in bct null?"+ (bct.variTable==null));
-							new File(DataUtil.currentFileName.replace(".c", ".mips"));
-							bct.genCode( DataUtil.currentFileName.replace(".c", ".temp"), DataUtil.currentFileName.replace(".c", ".mips"));
-							break;
-						}
+						
+						BackEndStruct bct = new BackEndStruct();
+						bct.setLex(tr.getLex());
+						System.out.println("is variTable in bct null?"+ (bct.variTable==null));
+						new File(DataUtil.currentFileName.replace(".c", ".mips"));
+						bct.genCode( DataUtil.currentFileName.replace(".c", ".temp"), DataUtil.currentFileName.replace(".c", ".mips"));
+						textPane.setText("±àÒë³É¹¦£¡\n\n\n");
+						
 					} catch (Exception e1) {
 						// TODO Auto-generated catch block
 						StackTraceElement[] trace = e1.getStackTrace();

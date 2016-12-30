@@ -45,7 +45,7 @@ public enum Operation {
 	ANDI("andi",new InsType_I(0b001100),OprandMode.I_RS_RT_IMME),
 	ORI("ori",new InsType_I(0b001101),OprandMode.I_RS_RT_IMME),
 	XORI("xori",new InsType_I(0b001110),OprandMode.I_RS_RT_IMME),
-	LUI("lui",new InsType_I(0b001111),OprandMode.I_RS_IMME),
+	LUI("lui",new InsType_I(0b001111),OprandMode.I_RT_IMME),
 	
 	LB("lb",new InsType_I(0b100000),OprandMode.I_RS_RT_OFFSET),
 	LBU("lbu",new InsType_I(0b100100),OprandMode.I_RS_RT_OFFSET),
@@ -56,8 +56,8 @@ public enum Operation {
 	LW("lw",new InsType_I(0b100011),OprandMode.I_RS_RT_OFFSET),
 	SW("sw",new InsType_I(0b101011),OprandMode.I_RS_RT_OFFSET),
 	
-	BEQ("beq",new InsType_I(0b000100),OprandMode.I_RS_RT_OFFSET),
-	BNE("bne",new InsType_I(0b000101),OprandMode.I_RS_RT_OFFSET),
+	BEQ("beq",new InsType_I(0b000100),OprandMode.I_RT_RS_OFFSET),
+	BNE("bne",new InsType_I(0b000101),OprandMode.I_RT_RS_OFFSET),
 	BGEZ("bgez",new InsType_I(0b000001,0b00001),OprandMode.I_RS_OFFSET),
 	BGTZ("bgtz",new InsType_I(0b000111,0b00000),OprandMode.I_RS_OFFSET),
 	BLEZ("blez",new InsType_I(0b000110,0b00000),OprandMode.I_RS_OFFSET),

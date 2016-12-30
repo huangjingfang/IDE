@@ -165,7 +165,7 @@ public class Oprand {
 			}
 		case OFFSET:
 			if(!name.matches("-?\\d+")){
-				throw new Exception("Invalid Number:"+name);
+				return name;
 			}else{
 				//String temp = Integer.toBinaryString(Integer.parseInt(name));
 				if(Math.pow(2, length)<Long.parseLong(name)){
@@ -186,9 +186,10 @@ public class Oprand {
 				}
 			}
 		case ADDRESS:
-			if(!name.matches("([a-zA-Z][0-9a-zA-Z._$]*)")){
-				throw new Exception("Invalid Label :"+name);
-			}else{
+			if(name.matches("\\d+")){
+				String temp = Long.toBinaryString(Long.parseLong(name)/4);
+				return Utils.format(temp, length);
+			}else if(name.matches("([a-zA-Z][0-9a-zA-Z._$]*)")){
 				return name;
 //				long label_addr = context.getLabelAddress(name);
 //				if(label_addr<0){
@@ -197,7 +198,7 @@ public class Oprand {
 //					String temp = Long.toBinaryString(label_addr);
 //					return Utils.format(temp, length);
 //				}
-			}
+			}else throw new Exception("·Ç·¨µØÖ·£º"+name);
 		case CODE:
 			if(!name.matches("\\d+")){
 				throw new Exception("Invalid Number:"+name);

@@ -11,6 +11,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import mipsAssembler.utils.Constants;
 import mipsAssembler.utils.Utils;
@@ -106,7 +108,7 @@ public class AssembleContext {
 //		writer.close();
 //	}
 	
-	private void pre_parse(){
+	private void pre_parse() throws Exception{
 		Iterator<String> it = label2Addr.keySet().iterator();
 		while(it.hasNext()){
 			String key = it.next();
@@ -123,12 +125,13 @@ public class AssembleContext {
 						//String labelAddrB = Long.toBinaryString(label2Addr.get(key));
 						System.out.println("J型指令：当前指令地址 :"+codeAddr+";标签"+key+"地址:"+label2Addr.get(key));
 						binaryIns.set(i, binaryIns.get(i).replace(key,labelAddrB));
+						System.out.println("二进制码："+binaryIns.get(i));
 					}else{
 						//offset
 						//System.out.println("I型指令");
 						long labelAddr = label2Addr.get(key);
 						System.out.println("R型指令：当前指令地址 :"+codeAddr+";标签"+key+"地址:"+labelAddr);
-						long offset = labelAddr-codeAddr;
+						long offset = labelAddr-codeAddr-4;
 						String offsetB = Long.toBinaryString(offset/4);
 						System.out.println("偏移值："+offset);
 						if(offsetB.length()==64)
@@ -136,15 +139,19 @@ public class AssembleContext {
 						else offsetB = Utils.format(offsetB, 16);
 						//binaryIns.set(i, binaryIns.get(i).replace(key, Utils.format(offsetB, 16)));
 						binaryIns.set(i, binaryIns.get(i).replace(key, offsetB));
+						System.out.println("二进制码："+binaryIns.get(i));
 					}
 				}
 				//System.out.println("\t更新指令码："+binaryIns.get(i));
 				codeAddr+=Constants.BYTES_PER_INSTRUCTION;
 			}
 		}
-		
-		for(String s:binaryIns){
-			System.out.println(s);
+		Matcher m = Pattern.compile("[01]+([a-zA-z2-9]+)[01]*").matcher("");
+		for(int i=0;i<binaryIns.size();i++){
+			m.reset(binaryIns.get(i));
+			if(m.matches())
+				throw new Exception("不存在标签:"+m.group(1));
+			System.out.println("地址:"+i*4+"\t指令："+binaryIns.get(i));
 		}
 	}
 	public void Parse() throws Exception{

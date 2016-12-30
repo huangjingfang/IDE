@@ -104,7 +104,7 @@ public class myLex {
 		this.ConsSignary = new Vector<sNode>();
 	}
 	
-	private String seuLex(String temp)
+	private String seuLex(String temp) throws Exception
 	{
 		String seuLexLastLex;
 		int currentState = 0;
@@ -120,11 +120,16 @@ public class myLex {
 			c = temp.charAt(index++);
 			q.push(c);
 			currentLength++;
-			currentState = TABLE[currentState][c];
-			if ( STATE_PATTERN[currentState] != -1 )
-			{
-				matchedState = currentState;
-				matchedLength = currentLength;
+			try{
+				currentState = TABLE[currentState][c];
+				if ( STATE_PATTERN[currentState] != -1 )
+				{
+					matchedState = currentState;
+					matchedLength = currentLength;
+				}
+			}catch (Exception e) {
+				// TODO: handle exception
+				throw new Exception("´Ê·¨·ÖÎö´íÎó");
 			}
 		}
 		if ( matchedLength>0 )
@@ -246,7 +251,7 @@ public class myLex {
 		return null;
 	}
 	
-	public String[] LexAnalysis(String []ss)
+	public String[] LexAnalysis(String []ss) throws Exception
 	{
 		String []result = new String[ss.length];
 		for(int i = 0 ; i < ss.length ; i++)

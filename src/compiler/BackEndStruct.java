@@ -424,27 +424,27 @@ public class BackEndStruct {
 				// 立即数加，arg1为立即数，arg0为变量或寄存器名，result为寄存器名
 				//System.out.println(getKey(variDesc, q.arg0)+variTable.get(getKey(variDesc, q.arg0)));
 				if (variTable.get(getKey(variDesc, q.arg0)).type.equalsIgnoreCase("unsigned")) {
-					// 无符号数加
+					// 无符号数减
 					addr = getReg(q.arg0, q.result);
 					qValues = new String[]{q.arg0,q.result};
 					builder.append(pre_process(addr, qValues));
 					builder.append("\t" + "addiu " + addr[1] + "," + addr[0] + ",-" + q.arg1 + "\n");
 				} else if (variTable.get(getKey(variDesc, q.arg0)).type.equalsIgnoreCase("Integer")) {
-					// 整数加
+					// 整数减
 					addr = getReg(q.arg0, q.result);
 					qValues = new String[]{q.arg0,q.result};
 					builder.append(pre_process(addr, qValues));
 					builder.append("\t" + "addi " + addr[1] + "," + addr[0] + ",-" + q.arg1 + "\n");
 				}
-			} else {
+			} else {//非立即数加
 				if (variTable.get(getKey(variDesc, q.arg1))!=null&&variTable.get(getKey(variDesc, q.arg1)).type.equalsIgnoreCase("unsigned")) {
-					// 无符号数加
+					// 无符号数减
 					addr = getReg(q.arg0, q.arg1, q.result);
 					qValues = new String[] { q.arg0, q.arg1, q.result };
 					builder.append(pre_process(addr, qValues));
 					builder.append("\t" + "subu " + addr[2] + "," + addr[0] + "," + addr[1] + "\n");
 				} else{// if (variTable.get(getKey(variDesc, q.arg1)).type.equalsIgnoreCase("Integer")) {
-					// 整数加
+					// 整数减
 					addr = getReg(q.arg0, q.arg1, q.result);
 					qValues = new String[] { q.arg0, q.arg1, q.result };
 					builder.append(pre_process(addr, qValues));

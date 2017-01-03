@@ -171,7 +171,7 @@ public class Oprand {
 				if(Math.pow(2, length)<Long.parseLong(name)){
 					throw new Exception("Invalid Number:"+name);
 				}else{
-					return Utils.format(Long.parseLong(name)/4, length);
+					return Utils.format(Long.parseLong(name), length);
 				}
 			}
 		case SHIFT_AMOUNT:

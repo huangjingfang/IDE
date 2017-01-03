@@ -14,7 +14,7 @@ public enum OprandMode {
 	I_RS_RT_VARI(OprandType.REGISTER,OprandType.VARIABLE,OprandType.REGISTER),
 	I_RS_RT_OFFSET(OprandType.REGISTER,OprandType.OFFSET,OprandType.REGISTER),
 	I_RT_RS_OFFSET(OprandType.REGISTER,OprandType.REGISTER,OprandType.OFFSET),
-	I_RS_OFFSET(OprandType.REGISTER,OprandType.ADDRESS),
+	I_RS_OFFSET(OprandType.REGISTER,OprandType.OFFSET),
 	J_ADDR(OprandType.ADDRESS);
 	
 
